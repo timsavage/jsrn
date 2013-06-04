@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import copy
+from jsrn.exceptions import ValidationError
 import registration
 
 DEFAULT_NAMES = ('abstract',)
@@ -8,12 +9,11 @@ DEFAULT_NAMES = ('abstract',)
 class ResourceOptions(object):
     def __init__(self, meta):
         self.meta = meta
-        self.local_fields = []
+        self.fields = []
         self.virtual_fields = []
         self.resource_name = None
         self.abstract = False
         self.serialized_name = ''
-        self.parents = []
 
     def contribute_to_class(self, cls, name):
         cls._meta = self
@@ -38,10 +38,9 @@ class ResourceOptions(object):
         del self.meta
 
     def add_field(self, field):
-        self.local_fields.append(field)
+        self.fields.append(field)
         if hasattr(self, '_field_cache'):
             del self._field_cache
-            del self._field_name_cache
 
         if hasattr(self, '_name_map'):
             del self._name_map
@@ -52,46 +51,14 @@ class ResourceOptions(object):
     def __repr__(self):
         return '<Options for %s>' % self.resource_name
 
-    def get_fields_with_model(self):
-        """
-        Returns a sequence of (field, model) pairs for all fields. The "model"
-        element is None for fields on the current model. Mostly of use when
-        constructing queries so that we know which model a field belongs to.
-        """
-        try:
-            self._field_cache
-        except AttributeError:
-            self._fill_fields_cache()
-        return self._field_cache
-
-    def _fill_fields_cache(self):
-        cache = []
-        for parent in self.parents:
-
-            for field, model in parent._meta.get_fields_with_model():
-                if model:
-                    cache.append((field, model))
-                else:
-                    cache.append((field, parent))
-        cache.extend([(f, None) for f in self.local_fields])
-        self._field_cache = tuple(cache)
-        self._field_name_cache = [x for x, _ in cache]
-
-    @property
-    def field(self):
-        try:
-            self._field_name_cache
-        except AttributeError:
-            self._fill_fields_cache()
-        return self._field_name_cache
-
 
 class ResourceBase(type):
     """
-    Metaclass that converts Field attributes to a dictionary called 'base_fields'.
+    Metaclass for all Resources.
     """
     def __new__(cls, name, bases, attrs):
         super_new = super(ResourceBase, cls).__new__
+
         parents = [b for b in bases if isinstance(b, ResourceBase)]
         if not parents:
             # If this isn't a subclass of Resource, don't do anything special.
@@ -108,7 +75,7 @@ class ResourceBase(type):
             meta = attr_meta
 
         new_class.add_to_class('_meta', ResourceOptions(meta))
-        if abstract:
+        if not abstract:
             pass  # Placeholder for future code...
 
         # Bail out early if we have already created this class.
@@ -121,7 +88,7 @@ class ResourceBase(type):
             new_class.add_to_class(obj_name, obj)
 
         # All the fields of any type declared on this model
-        new_fields = new_class._meta.local_fields + new_class._meta.virtual_fields
+        new_fields = new_class._meta.fields + new_class._meta.virtual_fields
         field_names = set([f.name for f in new_fields])
 
         for base in parents:
@@ -130,18 +97,20 @@ class ResourceBase(type):
                 # uninteresting parents.
                 continue
 
-            parent_fields = base._meta.local_fields
+            parent_fields = base._meta.fields
             # Check for clashes between locally declared fields and those
             # on the base classes (we cannot handle shadowed fields at the
             # moment).
-            for field in base._meta.local_fields:
+            for field in parent_fields:
                 if field.name in field_names:
                     raise Exception('Local field %r in class %r clashes '
                                      'with field of similar name from '
                                      'base class %r' % (field.name, name, base.__name__))
-
             for field in parent_fields:
                 new_class.add_to_class(field.name, copy.deepcopy(field))
+
+        if abstract:
+            return new_class
 
         # Register resource
         registration.register_resources(new_class)
@@ -163,10 +132,64 @@ class Resource(object):
     __metaclass__ = ResourceBase
 
     def __init__(self, **kwargs):
-        pass
+        for field in iter(self._meta.fields):
+            try:
+                val = kwargs.pop(field.attname)
+            except KeyError:
+                val = field.get_default()
+            if field.rel:
+                pass  # TODO handle this
+            else:
+                setattr(self, field.attname, val)
+
+        if kwargs:
+            raise TypeError("'%s' is an invalid keyword argument for this function" % list(kwargs)[0])
 
     def __getstate__(self):
-        return self.__dict__
+        return {f.name: f.prep_value(f.value_from_object(self)) for f in self._meta.fields}
 
     def __setstate__(self, state):
+
         self.__dict__.update(state)
+
+    def clean(self):
+        """
+        Chance to do more in depth validation.
+        """
+        pass
+
+    def full_clean(self):
+        """
+        Calls clean_fields, clean on the resource and raises ``ValidationError``
+        for any errors that occurred.
+        """
+        errors = {}
+
+        try:
+            self.clean_fields()
+        except ValidationError as e:
+            pass  # update error dict
+
+        try:
+            self.clean()
+        except ValidationError as e:
+            pass  # update error dict
+
+        if errors:
+            raise ValidationError(errors)
+
+    def clean_fields(self):
+        errors = {}
+
+        for f in self._meta.fiedls:
+            raw_value = f.value_from_object(self)
+
+            if f.null and raw_value is None:
+                continue
+            try:
+                setattr(self, f.attname, f.clean(raw_value, self))
+            except ValidationError as e:
+                errors[f.name] = e.message
+
+        if errors:
+            raise ValidationError(errors)
