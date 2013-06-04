@@ -181,7 +181,7 @@ class Resource(object):
     def clean_fields(self):
         errors = {}
 
-        for f in self._meta.fiedls:
+        for f in self._meta.fields:
             raw_value = f.value_from_object(self)
 
             if f.null and raw_value is None:
