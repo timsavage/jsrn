@@ -2,7 +2,7 @@
 import copy
 from jsrn import exceptions
 
-__all__ = ('BooleanField', 'CharField')
+__all__ = ('BooleanField', 'StringField', 'IntegerField', 'FloatField', 'ObjectField', 'ArrayField')
 
 
 class NOT_PROVIDED:
@@ -18,12 +18,13 @@ class Field(object):
                   u'already exists.',
     }
 
-    def __init__(self, verbose_name=None, name=None, required=True, null=False, default=NOT_PROVIDED,
+    def __init__(self, verbose_name=None, name=None, required=True, null=True, default=NOT_PROVIDED,
                  error_messages=None):
         self.verbose_name, self.name = verbose_name, name
         self.required = required
         self.null = null
         self.default = default
+        self.rel = False
 
         messages = {}
         for c in reversed(self.__class__.__mro__):
@@ -97,6 +98,12 @@ class Field(object):
             return self.default
         return None
 
+    def value_from_object(self, obj):
+        """
+        Returns the value of this field in the given model instance.
+        """
+        return getattr(obj, self.attname)
+
 
 class BooleanField(Field):
     default_error_messages = {
@@ -123,38 +130,18 @@ class BooleanField(Field):
         return bool(value)
 
 
-class CharField(Field):
+class StringField(Field):
     def to_python(self, value):
         if isinstance(value, basestring) or value is None:
             return value
         return str(value)
-
-
-class DateField(Field):
-    def to_python(self, value):
-        if isinstance(value, basestring) or value is None:
-            return value
-        return str(value)
-
-    def prep_value(self, value):
-        if value is None:
-            return None
-        return float(value)
-
-
-class DateTimeField(Field):
-    def to_python(self, value):
-        if isinstance(value, basestring) or value is None:
-            return value
-        return str(value)
-
-    def prep_value(self, value):
-        if value is None:
-            return None
-        return float(value)
 
 
 class FloatField(Field):
+    default_error_messages = {
+        'invalid': u"'%s' value must be a float.",
+    }
+
     def to_python(self, value):
         if isinstance(value, basestring) or value is None:
             return value
@@ -163,16 +150,76 @@ class FloatField(Field):
     def prep_value(self, value):
         if value is None:
             return None
-        return float(value)
+        try:
+            return float(value)
+        except ValueError:
+            msg = self.error_messages['invalid'] % value
+            raise exceptions.ValidationError(msg)
 
 
 class IntegerField(Field):
+    default_error_messages = {
+        'invalid': u"'%s' value must be a integer.",
+    }
+
     def to_python(self, value):
-        if isinstance(value, basestring) or value is None:
+        if value is None:
             return value
-        return str(value)
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            msg = self.error_messages['invalid'] % value
+            raise exceptions.ValidationError(msg)
 
     def prep_value(self, value):
         if value is None:
             return None
         return int(value)
+
+
+class ObjectField(Field):
+    default_error_messages = {
+        'invalid': u"Must be a dict.",
+    }
+
+    def __init__(self, **kwargs):
+        kwargs.setdefault("default", dict())
+        super(ObjectField, self).__init__(**kwargs)
+
+    def to_python(self, value):
+        if value is None:
+            return value
+        try:
+            return dict(value)
+        except (TypeError, ValueError):
+            msg = self.error_messages['invalid']
+            raise exceptions.ValidationError(msg)
+
+    def prep_value(self, value):
+        if value is None:
+            return None
+        return dict(value)
+
+
+class ArrayField(Field):
+    default_error_messages = {
+        'invalid': u"Must be a list.",
+    }
+
+    def __init__(self, **kwargs):
+        kwargs.setdefault("default", list())
+        super(ArrayField, self).__init__(**kwargs)
+
+    def to_python(self, value):
+        if value is None:
+            return value
+        try:
+            return list(value)
+        except (TypeError, ValueError):
+            msg = self.error_messages['invalid']
+            raise exceptions.ValidationError(msg)
+
+    def prep_value(self, value):
+        if value is None:
+            return None
+        return list(value)
