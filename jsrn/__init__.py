@@ -1,5 +1,4 @@
 import json
-import encoding
 from resources import Resource
 from fields import *
 
@@ -17,18 +16,21 @@ def loads(s):
     """
     Load from a JSON encoded string.
     """
-    return json.loads(s, cls=encoding.JSRNDecoder)
+    from encoding import JSRNDecoder
+    return json.loads(s, cls=JSRNDecoder)
 
 
-def dump(doc, fp, pretty_print=False):
+def dump(resource, fp, pretty_print=False):
     """
     Dump to a JSON encoded file.
     """
-    json.dump(doc, fp, cls=encoding.JSRNEncoder, indent=4 if pretty_print else None)
+    from encoding import JSRNEncoder
+    return json.dump(resource, fp, cls=JSRNEncoder, indent=4 if pretty_print else None)
 
 
-def dumps(doc, pretty_print=True):
+def dumps(resource, pretty_print=True):
     """
     Dump to a JSON encoded string.
     """
-    json.dumps(doc, cls=encoding.JSRNEncoder, indent=4 if pretty_print else None)
+    from encoding import JSRNEncoder
+    return json.dumps(resource, cls=JSRNEncoder, indent=4 if pretty_print else None)
