@@ -1,5 +1,5 @@
 
-class ResourceField(object):
+class Child(object):
     def __init__(self, of, name=None, related_name=None):
         try:
             of._meta
@@ -10,7 +10,7 @@ class ResourceField(object):
         self.rel = True
 
 
-class ResourceArrayField(object):
+class ChildArray(object):
     def __init__(self, of, name=None, related_name=None):
         try:
             of._meta
