@@ -1,0 +1,172 @@
+# -*- coding: utf-8 -*-
+import copy
+import registration
+
+DEFAULT_NAMES = ('abstract',)
+
+
+class ResourceOptions(object):
+    def __init__(self, meta):
+        self.meta = meta
+        self.local_fields = []
+        self.virtual_fields = []
+        self.resource_name = None
+        self.abstract = False
+        self.serialized_name = ''
+        self.parents = []
+
+    def contribute_to_class(self, cls, name):
+        cls._meta = self
+        self.resource_name = cls.__name__
+
+        if self.meta:
+            meta_attrs = self.meta.__dict__.copy()
+            for name in self.meta.__dict__:
+                if name.startswith('_'):
+                    del meta_attrs[name]
+            for attr_name in DEFAULT_NAMES:
+                if attr_name in meta_attrs:
+                    setattr(self, attr_name, meta_attrs.pop(attr_name))
+                elif hasattr(self.meta, attr_name):
+                    setattr(self, attr_name, getattr(self.meta, attr_name))
+
+            # Any leftover attributes must be invalid.
+            if meta_attrs != {}:
+                raise TypeError("'class Meta' got invalid attribute(s): %s" % ','.join(meta_attrs.keys()))
+        else:
+            pass
+        del self.meta
+
+    def add_field(self, field):
+        self.local_fields.append(field)
+        if hasattr(self, '_field_cache'):
+            del self._field_cache
+            del self._field_name_cache
+
+        if hasattr(self, '_name_map'):
+            del self._name_map
+
+    def add_virtual_field(self, field):
+        self.virtual_fields.append(field)
+
+    def __repr__(self):
+        return '<Options for %s>' % self.resource_name
+
+    def get_fields_with_model(self):
+        """
+        Returns a sequence of (field, model) pairs for all fields. The "model"
+        element is None for fields on the current model. Mostly of use when
+        constructing queries so that we know which model a field belongs to.
+        """
+        try:
+            self._field_cache
+        except AttributeError:
+            self._fill_fields_cache()
+        return self._field_cache
+
+    def _fill_fields_cache(self):
+        cache = []
+        for parent in self.parents:
+
+            for field, model in parent._meta.get_fields_with_model():
+                if model:
+                    cache.append((field, model))
+                else:
+                    cache.append((field, parent))
+        cache.extend([(f, None) for f in self.local_fields])
+        self._field_cache = tuple(cache)
+        self._field_name_cache = [x for x, _ in cache]
+
+    @property
+    def field(self):
+        try:
+            self._field_name_cache
+        except AttributeError:
+            self._fill_fields_cache()
+        return self._field_name_cache
+
+
+class ResourceBase(type):
+    """
+    Metaclass that converts Field attributes to a dictionary called 'base_fields'.
+    """
+    def __new__(cls, name, bases, attrs):
+        super_new = super(ResourceBase, cls).__new__
+        parents = [b for b in bases if isinstance(b, ResourceBase)]
+        if not parents:
+            # If this isn't a subclass of Resource, don't do anything special.
+            return super_new(cls, name, bases, attrs)
+
+        # Create the class.
+        module = attrs.pop('__module__')
+        new_class = super_new(cls, name, bases, {'__module__': module})
+        attr_meta = attrs.pop('Meta', None)
+        abstract = getattr(attr_meta, 'abstract', False)
+        if not attr_meta:
+            meta = getattr(new_class, 'Meta', None)
+        else:
+            meta = attr_meta
+
+        new_class.add_to_class('_meta', ResourceOptions(meta))
+        if abstract:
+            pass  # Placeholder for future code...
+
+        # Bail out early if we have already created this class.
+        r = registration.get_resource(new_class._meta.resource_name)
+        if r is not None:
+            return r
+
+        # Add all attributes to the class.
+        for obj_name, obj in attrs.items():
+            new_class.add_to_class(obj_name, obj)
+
+        # All the fields of any type declared on this model
+        new_fields = new_class._meta.local_fields + new_class._meta.virtual_fields
+        field_names = set([f.name for f in new_fields])
+
+        for base in parents:
+            if not hasattr(base, '_meta'):
+                # Things without _meta aren't functional models, so they're
+                # uninteresting parents.
+                continue
+
+            parent_fields = base._meta.local_fields
+            # Check for clashes between locally declared fields and those
+            # on the base classes (we cannot handle shadowed fields at the
+            # moment).
+            for field in base._meta.local_fields:
+                if field.name in field_names:
+                    raise Exception('Local field %r in class %r clashes '
+                                     'with field of similar name from '
+                                     'base class %r' % (field.name, name, base.__name__))
+
+            for field in parent_fields:
+                new_class.add_to_class(field.name, copy.deepcopy(field))
+
+        # Register resource
+        registration.register_resources(new_class)
+
+        # Because of the way imports happen (recursively), we may or may not be
+        # the first time this model tries to register with the framework. There
+        # should only be one class for each model, so we always return the
+        # registered version.
+        return registration.get_resource(new_class._meta.resource_name)
+
+    def add_to_class(cls, name, value):
+        if hasattr(value, 'contribute_to_class'):
+            value.contribute_to_class(cls, name)
+        else:
+            setattr(cls, name, value)
+
+
+class Resource(object):
+    __metaclass__ = ResourceBase
+
+    def __init__(self, **kwargs):
+        pass
+
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
