@@ -1,6 +1,7 @@
 import json
 from resources import Resource
 from fields import *
+from fields.related import *
 
 __version__ = 0.1
 
