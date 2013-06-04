@@ -32,12 +32,12 @@ class Image(BaseElement):
 
 
 class Group(BaseElement):
-    items = jsrn.ArrayField()
+    items = jsrn.ResourceArray(BaseElement)
 
 
 class Layer(jsrn.Resource):
     css_class = jsrn.StringField()
-    items = jsrn.ArrayField()
+    items = jsrn.ResourceArray(BaseElement)
 
 
 class Page(jsrn.Resource):
@@ -46,11 +46,11 @@ class Page(jsrn.Resource):
     height = jsrn.IntegerField(default=1024)
     style = StyleField()
     css_includes = jsrn.ArrayField()
-    layers = jsrn.ArrayField()
+    layers = jsrn.ResourceArray(Layer)
 
 
-b = Block()
-b.text = "EEK"
+b = Page()
+b.title = "EEK"
 b.name = "123"
 
 print jsrn.dumps(b)
