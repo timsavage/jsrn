@@ -3,7 +3,7 @@ from jsrn.resources import Resource
 from jsrn.fields import *
 from jsrn.fields.related import *
 
-__version__ = 0.1
+__version__ = "0.1.1"
 
 
 def load(fp, *args, **kwargs):
