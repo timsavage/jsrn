@@ -6,19 +6,19 @@ from fields.related import *
 __version__ = 0.1
 
 
-def load(fp):
+def load(fp, *args, **kwargs):
     """
     Load a from a JSON encoded file.
     """
-    return loads(fp.read())
+    return loads(fp.read(), *args, **kwargs)
 
 
-def loads(s):
+def loads(s, resource_name=None):
     """
     Load from a JSON encoded string.
     """
-    from encoding import JSRNDecoder
-    return json.loads(s, cls=JSRNDecoder)
+    from encoding import build_object_graph
+    return build_object_graph(json.loads(s), resource_name)
 
 
 def dump(resource, fp, pretty_print=False):
