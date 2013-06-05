@@ -137,20 +137,24 @@ class Resource(object):
                 val = kwargs.pop(field.attname)
             except KeyError:
                 val = field.get_default()
-            if field.rel:
-                pass  # TODO handle this
-            else:
-                setattr(self, field.attname, val)
+            setattr(self, field.attname, val)
 
         if kwargs:
             raise TypeError("'%s' is an invalid keyword argument for this function" % list(kwargs)[0])
 
     def __getstate__(self):
-        return {f.name: f.prep_value(f.value_from_object(self)) for f in self._meta.fields}
+        state = {}
+        for f in self._meta.fields:
+            val = f.serialize(self)
+            # Ignore
+            if val is None and not f.always_include:
+                continue
+            state[f.name] = val
+        return state
 
     def __setstate__(self, state):
-
-        self.__dict__.update(state)
+        for f in self._meta.fields:
+            f.deserialize(self, state.get(f.name))
 
     def clean(self):
         """
@@ -168,12 +172,12 @@ class Resource(object):
         try:
             self.clean_fields()
         except ValidationError as e:
-            pass  # update error dict
+            errors = e.update_error_dict(errors)
 
         try:
             self.clean()
         except ValidationError as e:
-            pass  # update error dict
+            errors = e.update_error_dict(errors)
 
         if errors:
             raise ValidationError(errors)
@@ -189,7 +193,7 @@ class Resource(object):
             try:
                 setattr(self, f.attname, f.clean(raw_value, self))
             except ValidationError as e:
-                errors[f.name] = e.message
+                errors[f.name] = e.messages
 
         if errors:
             raise ValidationError(errors)
