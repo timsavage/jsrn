@@ -77,7 +77,7 @@ class Field(object):
     def set_attributes_from_name(self, name):
         if not self.name:
             self.name = name
-        self.attname = self.get_attname()
+        self.attname = name
         if self.verbose_name is None and self.name:
             self.verbose_name = self.name.replace('_', ' ')
 
@@ -85,9 +85,6 @@ class Field(object):
         self.set_attributes_from_name(name)
         self.model = cls
         cls._meta.add_field(self)
-
-    def get_attname(self):
-        return self.name
 
     def to_python(self, value):
         """
