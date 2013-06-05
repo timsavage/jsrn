@@ -1,4 +1,5 @@
 from jsrn import exceptions, registration
+from jsrn.resources import Resource
 from jsrn.fields import Field
 
 __all__ = ('ObjectOfType', 'ArrayOfType',)
@@ -28,6 +29,17 @@ class ObjectOfType(Field):
 
         msg = self.error_messages['invalid'] % self.of
         raise exceptions.ValidationError(msg)
+
+    def clean(self, value, model_instance=None):
+        """
+        Convert the value's type and run validation. Validation errors
+        from to_python and validate are propagated. The correct value is
+        returned if no error is raised.
+        """
+        value = self.to_python(value)
+        if value is not None:
+            value.full_clean()
+        return value
 
     def _deserialize(self, value):
         if isinstance(value, dict):
@@ -73,6 +85,18 @@ class ArrayOfType(ObjectOfType):
 
         msg = self.error_messages['invalid'] % self.of
         raise exceptions.ValidationError(msg)
+
+    def clean(self, value, model_instance=None):
+        """
+        Convert the value's type and run validation. Validation errors
+        from to_python and validate are propagated. The correct value is
+        returned if no error is raised.
+        """
+        value = self.to_python(value)
+        if value is not None:
+            for item in value:
+                item.full_clean()
+        return value
 
     def deserialize(self, obj, value):
         """
