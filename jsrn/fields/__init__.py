@@ -10,27 +10,62 @@ class NOT_PROVIDED:
 
 
 class Field(object):
+    """
+    Base class for all fields.
+    """
+    default_validators = []
     default_error_messages = {
         'invalid_choice': u'Value %r is not a valid choice.',
         'null': u'This field cannot be null.',
-        'blank': u'This field cannot be blank.',
-        'unique': u'%(model_name)s with this %(field_label)s '
-                  u'already exists.',
     }
 
-    def __init__(self, verbose_name=None, name=None, required=True, null=True, default=NOT_PROVIDED,
-                 error_messages=None):
+    # Used to maintain the order of fields
+    creation_counter = 0
+
+    def __init__(self, verbose_name=None, name=None, max_length=None, required=True, null=True, always_include=True,
+                 default=NOT_PROVIDED,  choices=None, help_text='', validators=[], error_messages=None):
+        """
+        Initialisation of a Field.
+
+        :param verbose_name: Display name of field.
+        :param name: Name of field in serialised form.
+        :param max_length: Maximum length of a string.
+        :param required: This field is required in to be set to a none empty value.
+        :param null: This value can be null.
+        :param always_include: Always include this value in serialised form (even if null).
+        :param default: Default value for this field.
+        :param choices: Collection of valid choices for this field.
+        :param help_text: Help text to describe this field when generating a schema.
+        :param validators: Additional validators, these should be a callable that takes a single value.
+        :param error_messages: Dictionary that overrides error messages (or providers additional messages for custom
+            validation.
+        """
         self.verbose_name, self.name = verbose_name, name
+        self.max_length = max_length
         self.required = required
-        self.null = null
-        self.default = default
-        self.rel = False
+        self.null, self.always_include = null, always_include
+        self.default, self.choices = default, choices
+        self.help_text = help_text
+
+        # Adjust the creation counter, and save our local copy.
+        self.creation_counter = Field.creation_counter
+        Field.creation_counter += 1
+
+        self.validators = self.default_validators + validators
 
         messages = {}
         for c in reversed(self.__class__.__mro__):
             messages.update(getattr(c, 'default_error_messages', {}))
         messages.update(error_messages or {})
         self.error_messages = messages
+
+    def __eq__(self, other):
+        if isinstance(other, Field):
+            return self.creation_counter == other.creation_counter
+        return NotImplemented
+
+    def __hash__(self):
+        return hash(self.creation_counter)
 
     def __deepcopy__(self, memodict):
         # We don't have to deepcopy very much here, since most things are not
@@ -103,6 +138,24 @@ class Field(object):
         Returns the value of this field in the given model instance.
         """
         return getattr(obj, self.attname)
+
+    def value_for_object(self, obj, value):
+        """
+        Assign a value to an object
+        """
+        setattr(obj, self.attname, value)
+
+    def serialize(self, obj):
+        """
+        Serialise value from object
+        """
+        return self.prep_value(self.value_from_object(obj))
+
+    def deserialize(self, obj, value):
+        """
+        De-serialize value into object.
+        """
+        self.value_for_object(obj, value)
 
 
 class BooleanField(Field):
