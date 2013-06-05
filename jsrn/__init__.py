@@ -1,7 +1,7 @@
 import json
-from resources import Resource
-from fields import *
-from fields.related import *
+from jsrn.resources import Resource
+from jsrn.fields import *
+from jsrn.fields.related import *
 
 __version__ = 0.1
 
