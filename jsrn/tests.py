@@ -32,12 +32,12 @@ class Image(BaseElement):
 
 
 class Group(BaseElement):
-    items = jsrn.ResourceArray(BaseElement)
+    items = jsrn.ArrayOfType(BaseElement)
 
 
 class Layer(jsrn.Resource):
     css_class = jsrn.StringField()
-    items = jsrn.ResourceArray(BaseElement)
+    items = jsrn.ArrayOfType(BaseElement)
 
 
 class Page(jsrn.Resource):
@@ -46,16 +46,20 @@ class Page(jsrn.Resource):
     height = jsrn.IntegerField(default=1024)
     style = StyleField()
     css_includes = jsrn.ArrayField()
-    layers = jsrn.ResourceArray(Layer)
+    layers = jsrn.ArrayOfType(Layer)
 
 
-b = Page()
-b.title = "EEK"
-b.name = "123"
+p = Page()
+p.title = "EEK"
+p.name = "123"
+p.layers.append(Layer(css_class="MoveInFromTop"))
 
-print jsrn.dumps(b)
+out = jsrn.dumps(p)
+print out
 
-b.full_clean()
+p2 = jsrn.loads(out)
 
-print b._meta.resource_name
+print p2._meta.resource_name
+print len(p2.layers)
 
+p2.full_clean()
