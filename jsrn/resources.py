@@ -89,7 +89,7 @@ class ResourceBase(type):
 
         # All the fields of any type declared on this model
         new_fields = new_class._meta.fields + new_class._meta.virtual_fields
-        field_names = set([f.name for f in new_fields])
+        field_attnames = set([f.attname for f in new_fields])
 
         for base in parents:
             if not hasattr(base, '_meta'):
@@ -102,12 +102,12 @@ class ResourceBase(type):
             # on the base classes (we cannot handle shadowed fields at the
             # moment).
             for field in parent_fields:
-                if field.name in field_names:
+                if field.attname in field_attnames:
                     raise Exception('Local field %r in class %r clashes '
                                      'with field of similar name from '
-                                     'base class %r' % (field.name, name, base.__name__))
+                                     'base class %r' % (field.attname, name, base.__name__))
             for field in parent_fields:
-                new_class.add_to_class(field.name, copy.deepcopy(field))
+                new_class.add_to_class(field.attname, copy.deepcopy(field))
 
         if abstract:
             return new_class
@@ -191,7 +191,7 @@ class Resource(object):
             if f.null and raw_value is None:
                 continue
             try:
-                setattr(self, f.attname, f.clean(raw_value, self))
+                f.value_for_object(self, f.clean(raw_value, self))
             except ValidationError as e:
                 errors[f.name] = e.messages
 
