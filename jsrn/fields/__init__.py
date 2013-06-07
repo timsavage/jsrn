@@ -240,7 +240,9 @@ class ObjectField(Field):
         if value is None:
             return value
         try:
-            return dict(value)
+            val = dict(value)
+            val.pop("$", None)  # Ensure that any $ items are cleaned out
+            return val
         except (TypeError, ValueError):
             msg = self.error_messages['invalid']
             raise exceptions.ValidationError(msg)
