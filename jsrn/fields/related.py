@@ -1,4 +1,5 @@
 from jsrn import exceptions, registration
+from jsrn.exceptions import ValidationError
 from jsrn.resources import Resource
 from jsrn.fields import Field
 
@@ -47,14 +48,15 @@ class ObjectOfType(Field):
             specified_resource_name = self.of._meta.resource_name
             if resource_name != specified_resource_name:
                 if not self.of._meta.abstract:
-                    raise TypeError("Invalid resource type, expected `%s` got `%s`" % (
+                    raise ValidationError("Invalid resource type, expected `%s` got `%s`" % (
                         specified_resource_name, resource_name))
                 else:
                     # TODO: validate that the specified resource is actually inherited off abstract
                     resource_type = registration.get_resource(resource_name)
+                    if not resource_type:
+                        raise ValidationError("Unknown resource `%s`" % resource_name)
             else:
                 resource_type = self.of
-
             new_obj = resource_type()
             new_obj.__setstate__(value)
             return new_obj
