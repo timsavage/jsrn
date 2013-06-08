@@ -19,15 +19,13 @@ class Field(object):
         'null': u'This field cannot be null.',
     }
 
-    # Used to maintain the order of fields
-    creation_counter = 0
-
-    def __init__(self, verbose_name=None, name=None, max_length=None, required=True, null=True, always_include=True,
+    def __init__(self, verbose_name=None, verbose_name_plural=None, name=None, max_length=None, required=True, null=True, always_include=True,
                  default=NOT_PROVIDED,  choices=None, help_text='', validators=[], error_messages=None):
         """
         Initialisation of a Field.
 
         :param verbose_name: Display name of field.
+        :param verbose_name_plural: Plural display name of field.
         :param name: Name of field in serialised form.
         :param max_length: Maximum length of a string.
         :param required: This field is required in to be set to a none empty value.
@@ -40,16 +38,12 @@ class Field(object):
         :param error_messages: Dictionary that overrides error messages (or providers additional messages for custom
             validation.
         """
-        self.verbose_name, self.name = verbose_name, name
-        self.max_length = max_length
-        self.required = required
+        self.verbose_name, self.verbose_name_plural = verbose_name, verbose_name_plural
+        self.name = name
+        self.max_length, self.required = max_length, required
         self.null, self.always_include = null, always_include
         self.default, self.choices = default, choices
         self.help_text = help_text
-
-        # Adjust the creation counter, and save our local copy.
-        self.creation_counter = Field.creation_counter
-        Field.creation_counter += 1
 
         self.validators = self.default_validators + validators
 
@@ -59,14 +53,6 @@ class Field(object):
         messages.update(error_messages or {})
         self.error_messages = messages
 
-    def __eq__(self, other):
-        if isinstance(other, Field):
-            return self.creation_counter == other.creation_counter
-        return NotImplemented
-
-    def __hash__(self):
-        return hash(self.creation_counter)
-
     def __deepcopy__(self, memodict):
         # We don't have to deepcopy very much here, since most things are not
         # intended to be altered after initial creation.
@@ -74,12 +60,14 @@ class Field(object):
         memodict[id(self)] = obj
         return obj
 
-    def set_attributes_from_name(self, name):
+    def set_attributes_from_name(self, attname):
         if not self.name:
-            self.name = name
-        self.attname = name
+            self.name = attname
+        self.attname = attname
         if self.verbose_name is None and self.name:
             self.verbose_name = self.name.replace('_', ' ')
+        if self.verbose_name_plural is None and self.verbose_name:
+            self.verbose_name_plural = "%ss" % self.verbose_name
 
     def contribute_to_class(self, cls, name):
         self.set_attributes_from_name(name)
@@ -112,6 +100,9 @@ class Field(object):
         return value
 
     def prep_value(self, value):
+        """
+        Prepare value for saving into JSON structure.
+        """
         return value
 
     def has_default(self):
@@ -142,18 +133,6 @@ class Field(object):
         """
         setattr(obj, self.attname, value)
 
-    def serialize(self, obj):
-        """
-        Serialise value from object
-        """
-        return self.prep_value(self.value_from_object(obj))
-
-    def deserialize(self, obj, value):
-        """
-        De-serialize value into object.
-        """
-        self.value_for_object(obj, value)
-
 
 class BooleanField(Field):
     default_error_messages = {
@@ -161,6 +140,8 @@ class BooleanField(Field):
     }
 
     def to_python(self, value):
+        if value is None:
+            return None
         if value in (True, False):
             # if value is 1 or 0 than it's equal to True or False, but we want
             # to return a true bool for semantic reasons.
@@ -173,11 +154,6 @@ class BooleanField(Field):
                 return False
         msg = self.error_messages['invalid'] % str(value)
         raise exceptions.ValidationError(msg)
-
-    def prep_value(self, value):
-        if value is None:
-            return None
-        return bool(value)
 
 
 class StringField(Field):
@@ -193,11 +169,6 @@ class FloatField(Field):
     }
 
     def to_python(self, value):
-        if isinstance(value, basestring) or value is None:
-            return value
-        return str(value)
-
-    def prep_value(self, value):
         if value is None:
             return None
         try:
@@ -221,11 +192,6 @@ class IntegerField(Field):
             msg = self.error_messages['invalid'] % value
             raise exceptions.ValidationError(msg)
 
-    def prep_value(self, value):
-        if value is None:
-            return None
-        return int(value)
-
 
 class ObjectField(Field):
     default_error_messages = {
@@ -247,11 +213,6 @@ class ObjectField(Field):
             msg = self.error_messages['invalid']
             raise exceptions.ValidationError(msg)
 
-    def prep_value(self, value):
-        if value is None:
-            return None
-        return dict(value)
-
 
 class ArrayField(Field):
     default_error_messages = {
@@ -270,8 +231,3 @@ class ArrayField(Field):
         except (TypeError, ValueError):
             msg = self.error_messages['invalid']
             raise exceptions.ValidationError(msg)
-
-    def prep_value(self, value):
-        if value is None:
-            return None
-        return list(value)
