@@ -62,11 +62,11 @@ class ObjectOfType(Field):
             return new_obj
         return value
 
-    def deserialize(self, obj, value):
+    def value_for_object(self, obj, value):
         """
-        De-serialize value into object.
+        Assign a value to an object
         """
-        self.value_for_object(obj, self._deserialize(value))
+        setattr(obj, self.attname, self._deserialize(value))
 
 
 class ArrayOfType(ObjectOfType):
@@ -100,10 +100,8 @@ class ArrayOfType(ObjectOfType):
                 item.full_clean()
         return value
 
-    def deserialize(self, obj, value):
+    def value_for_object(self, obj, value):
         """
         De-serialize value into object.
         """
-        if isinstance(value, list):
-            value = [self._deserialize(i) for i in value]
-        self.value_for_object(obj, value)
+        setattr(obj, self.attname, [self._deserialize(i) for i in value])
