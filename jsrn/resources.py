@@ -145,7 +145,7 @@ class Resource(object):
     def __getstate__(self):
         state = {}
         for f in self._meta.fields:
-            val = f.serialize(self)
+            val = f.prep_value(f.value_from_object(self))
             # Ignore
             if val is None and not f.always_include:
                 continue
@@ -154,7 +154,7 @@ class Resource(object):
 
     def __setstate__(self, state):
         for f in self._meta.fields:
-            f.deserialize(self, state.get(f.name))
+            f.value_for_object(self, state.get(f.name))
 
     def clean(self):
         """
