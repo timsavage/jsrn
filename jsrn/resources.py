@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 import copy
+from jsrn import exceptions
 from jsrn.exceptions import ValidationError
 import registration
 
-DEFAULT_NAMES = ('abstract',)
+
+RESOURCE_TYPE_FIELD = '$'
+DEFAULT_NAMES = ('abstract', 'module_name', 'name',)
 
 
 class ResourceOptions(object):
@@ -11,13 +14,15 @@ class ResourceOptions(object):
         self.meta = meta
         self.fields = []
         self.virtual_fields = []
-        self.resource_name = None
+        self.name = None
+        self.module_name = None
         self.abstract = False
         self.serialized_name = ''
 
     def contribute_to_class(self, cls, name):
         cls._meta = self
-        self.resource_name = cls.__name__
+        self.name = cls.__name__
+        self.module_name = cls.__module__
 
         if self.meta:
             meta_attrs = self.meta.__dict__.copy()
@@ -47,6 +52,10 @@ class ResourceOptions(object):
 
     def add_virtual_field(self, field):
         self.virtual_fields.append(field)
+
+    @property
+    def resource_name(self):
+        return "%s.%s" % (self.module_name, self.name)
 
     def __repr__(self):
         return '<Options for %s>' % self.resource_name
@@ -142,20 +151,6 @@ class Resource(object):
         if kwargs:
             raise TypeError("'%s' is an invalid keyword argument for this function" % list(kwargs)[0])
 
-    def __getstate__(self):
-        state = {}
-        for f in self._meta.fields:
-            val = f.prep_value(f.value_from_object(self))
-            # Ignore
-            if val is None and not f.always_include:
-                continue
-            state[f.name] = val
-        return state
-
-    def __setstate__(self, state):
-        for f in self._meta.fields:
-            f.value_for_object(self, state.get(f.name))
-
     def clean(self):
         """
         Chance to do more in depth validation.
@@ -191,9 +186,44 @@ class Resource(object):
             if f.null and raw_value is None:
                 continue
             try:
-                f.value_for_object(self, f.clean(raw_value, self))
+                setattr(self, f.attname, f.clean(raw_value))
             except ValidationError as e:
                 errors[f.name] = e.messages
 
         if errors:
             raise ValidationError(errors)
+
+
+def create_resource_from_dict(obj, resource_name=None):
+    """
+    Create a resource from a dict object.
+    """
+    assert isinstance(obj, dict)
+
+    # Get the correct resource name
+    document_resource_name = obj.pop(RESOURCE_TYPE_FIELD, resource_name)
+    if not (document_resource_name or resource_name):
+        raise exceptions.ValidationError("Resource not defined.")
+    if resource_name and resource_name != document_resource_name:
+        raise exceptions.ValidationError(
+            "Expected resource `%s` does not match resource defined in JSRN document `%s`." % (
+                resource_name, document_resource_name))
+
+    resource_type = registration.get_resource(document_resource_name)
+    if not resource_type:
+        raise exceptions.ValidationError("Resource `%s` is not registered." % document_resource_name)
+
+    errors = {}
+    attrs = {}
+    for f in resource_type._meta.fields:
+        try:
+            attrs[f.attname] = f.clean(obj.get(f.name))
+        except exceptions.ValidationError, ve:
+            errors[f.name] = ve.messages
+
+    if errors:
+        raise exceptions.ValidationError(errors)
+
+    new_resource = resource_type(**attrs)
+    new_resource.clean()
+    return new_resource
