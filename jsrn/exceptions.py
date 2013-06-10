@@ -10,19 +10,15 @@ class ValidationError(Exception):
         ValidationError can be passed any object that can be printed (usually
         a string), a list of objects or a dictionary.
         """
-        import operator
-
         if isinstance(message, dict):
             self.message_dict = message
-            # Reduce each list of messages into a single list.
-            message = reduce(operator.add, message.values())
 
         if isinstance(message, list):
             self.messages = [msg for msg in message]
         else:
+            self.messages = [message]
             self.code = code
             self.params = params
-            self.messages = [message]
 
     def __str__(self):
         # This is needed because, without a __str__(), printing an exception
