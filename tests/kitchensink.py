@@ -45,13 +45,13 @@ class KitchenSinkTestCase(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
-    def test_dumps_with_invalid_data(self):
+    def test_full_clean_invalid_data(self):
         book = Book(title="Consider Phlebas", num_pages=471, rrp=19.50, genre="space opera", fiction=True)
         book.publisher = Publisher(name="Macmillan")
         book.authors.append(Author(name="Iain M. Banks"))
 
         with self.assertRaises(exceptions.ValidationError):
-            jsrn.dumps(book)
+            book.full_clean()
 
     def test_load_valid_data(self):
         book = jsrn.load(file(os.path.join(FIXTURE_PATH_ROOT, "book-valid.json")))

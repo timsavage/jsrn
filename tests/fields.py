@@ -15,6 +15,7 @@ class FieldTestCase(unittest.TestCase):
         self.assertDictEqual({
             'invalid_choice': u'Value %r is not a valid choice.',
             'null': u'This field cannot be null.',
+            'blank': u'This field cannot be blank.',
         }, target.error_messages)
 
     def test_error_messages_override_add(self):
@@ -26,6 +27,7 @@ class FieldTestCase(unittest.TestCase):
         self.assertDictEqual({
             'invalid_choice': u'Value %r is not a valid choice.',
             'null': u'Override',
+            'blank': u'This field cannot be blank.',
             'other': u'Other Value',
         }, target.error_messages)
 
@@ -89,16 +91,6 @@ class FieldTestCase(unittest.TestCase):
         setattr(an_obj, "test_name", "test_value")
 
         actual = target.value_from_object(an_obj)
-        self.assertEqual("test_value", actual)
-
-    def test_value_for_object(self):
-        target = fields.Field()
-        target.set_attributes_from_name("test_name")
-
-        an_obj = ObjectValue()
-        target.value_for_object(an_obj, "test_value")
-
-        actual = getattr(an_obj, "test_name")
         self.assertEqual("test_value", actual)
 
 
