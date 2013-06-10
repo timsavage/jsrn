@@ -1,0 +1,25 @@
+{
+    "$": "kitchensink.Book",
+    "authors": [
+        {
+            "$": "kitchensink.Author",
+            "name": "Iain M. Banks"
+        },
+        {
+            "$": "kitchensink.Author"
+        },
+        {
+            "$": "kitchensink.OtherAuthor",
+            "name": "Some other guy."
+        }
+    ],
+    "fiction": null,
+    "genre": "space opera",
+    "num_pages": "471",
+    "publisher": {
+        "$": "kitchensink.Publisher",
+        "name": "Macmillan"
+    },
+    "rrp": 19.5,
+    "title": "Consider Phlebas"
+}
