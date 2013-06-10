@@ -216,14 +216,16 @@ def create_resource_from_dict(obj, resource_name=None):
         #     "Expected resource `%s` does not match resource defined in JSRN document `%s`." % (
         #         resource_name, document_resource_name))
 
-
     errors = {}
     attrs = {}
     for f in resource_type._meta.fields:
         try:
             attrs[f.attname] = f.clean(obj.get(f.name))
         except exceptions.ValidationError, ve:
-            errors[f.name] = ve.messages
+            if hasattr(ve, "message_dict"):
+                errors[f.name] = ve.message_dict
+            else:
+                errors[f.name] = ve.messages
 
     if errors:
         raise exceptions.ValidationError(errors)
