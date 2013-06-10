@@ -102,7 +102,7 @@ class Field(object):
         if errors:
             raise exceptions.ValidationError(errors)
 
-    def validate(self, value, model_instance):
+    def validate(self, value):
         if self.choices and value not in EMPTY_VALUES:
             for option_key, option_value in self.choices:
                 if value == option_key:
@@ -116,14 +116,14 @@ class Field(object):
         if not self.blank and value in EMPTY_VALUES:
             raise exceptions.ValidationError(self.error_messages['blank'])
 
-    def clean(self, value, model_instance):
+    def clean(self, value):
         """
         Convert the value's type and run validation. Validation errors
         from to_python and validate are propagated. The correct value is
         returned if no error is raised.
         """
         value = self.to_python(value)
-        self.validate(value, model_instance)
+        self.validate(value)
         self.run_validators(value)
         return value
 
@@ -235,7 +235,7 @@ class ObjectField(Field):
     }
 
     def __init__(self, **kwargs):
-        kwargs.setdefault("default", dict())
+        kwargs.setdefault("default", dict)
         super(ObjectField, self).__init__(**kwargs)
 
     def to_python(self, value):
@@ -256,7 +256,7 @@ class ArrayField(Field):
     }
 
     def __init__(self, **kwargs):
-        kwargs.setdefault("default", list())
+        kwargs.setdefault("default", list)
         super(ArrayField, self).__init__(**kwargs)
 
     def to_python(self, value):
