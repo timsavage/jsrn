@@ -110,6 +110,9 @@ class Field(object):
             msg = self.error_messages['invalid_choice'] % value
             raise exceptions.ValidationError(msg)
 
+        if value in EMPTY_VALUES and not self.required:
+            return
+
         if value is None and not self.null:
             raise exceptions.ValidationError(self.error_messages['null'])
 
