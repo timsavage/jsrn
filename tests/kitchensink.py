@@ -31,6 +31,9 @@ class Book(jsrn.Resource):
     authors = jsrn.ArrayOf(Author)
     publisher = jsrn.ObjectAs(Publisher)
 
+    class Meta:
+        module_name = "library"
+
 
 class KitchenSinkTestCase(unittest.TestCase):
     def test_dumps_with_valid_data(self):
@@ -40,7 +43,7 @@ class KitchenSinkTestCase(unittest.TestCase):
 
         actual = jsrn.dumps(book, pretty_print=False)
         expected = '{"publisher": {"name": "Macmillan", "$": "kitchensink.Publisher"}, "num_pages": 471, ' \
-                   '"$": "kitchensink.Book", "title": "Consider Phlebas", "fiction": true, ' \
+                   '"$": "library.Book", "title": "Consider Phlebas", "fiction": true, ' \
                    '"authors": [{"name": "Iain M. Banks", "$": "kitchensink.Author"}], "genre": "sci-fi", "rrp": 19.5}'
 
         self.assertEqual(expected, actual)
