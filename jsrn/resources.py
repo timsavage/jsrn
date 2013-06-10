@@ -112,9 +112,8 @@ class ResourceBase(type):
             # moment).
             for field in parent_fields:
                 if field.attname in field_attnames:
-                    raise Exception('Local field %r in class %r clashes '
-                                     'with field of similar name from '
-                                     'base class %r' % (field.attname, name, base.__name__))
+                    raise Exception('Local field %r in class %r clashes with field of similar name from '
+                                    'base class %r' % (field.attname, name, base.__name__))
             for field in parent_fields:
                 new_class.add_to_class(field.attname, copy.deepcopy(field))
 
@@ -204,14 +203,19 @@ def create_resource_from_dict(obj, resource_name=None):
     document_resource_name = obj.pop(RESOURCE_TYPE_FIELD, resource_name)
     if not (document_resource_name or resource_name):
         raise exceptions.ValidationError("Resource not defined.")
-    if resource_name and resource_name != document_resource_name:
-        raise exceptions.ValidationError(
-            "Expected resource `%s` does not match resource defined in JSRN document `%s`." % (
-                resource_name, document_resource_name))
 
     resource_type = registration.get_resource(document_resource_name)
     if not resource_type:
         raise exceptions.ValidationError("Resource `%s` is not registered." % document_resource_name)
+
+    # Check if we have an inherited type.
+    if resource_name and resource_name != document_resource_name:
+        # TODO: Assume inherited for now...
+        pass
+        # raise exceptions.ValidationError(
+        #     "Expected resource `%s` does not match resource defined in JSRN document `%s`." % (
+        #         resource_name, document_resource_name))
+
 
     errors = {}
     attrs = {}
