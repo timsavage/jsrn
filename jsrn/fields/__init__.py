@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import copy
 from jsrn import exceptions
+from jsrn.validators import EMPTY_VALUES, MaxLengthValidator, MinValueValidator, MaxValueValidator
 
 __all__ = ('BooleanField', 'StringField', 'IntegerField', 'FloatField', 'ObjectField', 'ArrayField')
 
@@ -17,20 +18,21 @@ class Field(object):
     default_error_messages = {
         'invalid_choice': u'Value %r is not a valid choice.',
         'null': u'This field cannot be null.',
+        'blank': u'This field cannot be blank.',
     }
 
-    def __init__(self, verbose_name=None, verbose_name_plural=None, name=None, max_length=None, required=True, null=True, always_include=True,
-                 default=NOT_PROVIDED,  choices=None, help_text='', validators=[], error_messages=None):
+    def __init__(self, verbose_name=None, verbose_name_plural=None, name=None, required=True,
+                 blank=False, null=False, default=NOT_PROVIDED, choices=None, help_text='', validators=[],
+                 error_messages=None):
         """
         Initialisation of a Field.
 
         :param verbose_name: Display name of field.
         :param verbose_name_plural: Plural display name of field.
-        :param name: Name of field in serialised form.
-        :param max_length: Maximum length of a string.
-        :param required: This field is required in to be set to a none empty value.
+        :param name: Name of field in JSON form.
+        :param required: This value must be defined in a loaded file.
+        :param blank: This value can be a non empty value.
         :param null: This value can be null.
-        :param always_include: Always include this value in serialised form (even if null).
         :param default: Default value for this field.
         :param choices: Collection of valid choices for this field.
         :param help_text: Help text to describe this field when generating a schema.
@@ -40,11 +42,10 @@ class Field(object):
         """
         self.verbose_name, self.verbose_name_plural = verbose_name, verbose_name_plural
         self.name = name
-        self.max_length, self.required = max_length, required
-        self.null, self.always_include = null, always_include
+        self.required = required
+        self.blank, self.null = blank, null
         self.default, self.choices = default, choices
         self.help_text = help_text
-
         self.validators = self.default_validators + validators
 
         messages = {}
@@ -83,10 +84,37 @@ class Field(object):
         return value
 
     def run_validators(self, value):
-        pass
+        if value in EMPTY_VALUES:
+            return
+
+        errors = []
+        for v in self.validators:
+            try:
+                v(value)
+            except exceptions.ValidationError as e:
+                if hasattr(e, 'code') and e.code in self.error_messages:
+                    message = self.error_messages[e.code]
+                    if e.params:
+                        message = message % e.params
+                    errors.append(message)
+                else:
+                    errors.extend(e.messages)
+        if errors:
+            raise exceptions.ValidationError(errors)
 
     def validate(self, value, model_instance):
-        pass
+        if self.choices and value not in EMPTY_VALUES:
+            for option_key, option_value in self.choices:
+                if value == option_key:
+                    return
+            msg = self.error_messages['invalid_choice'] % value
+            raise exceptions.ValidationError(msg)
+
+        if value is None and not self.null:
+            raise exceptions.ValidationError(self.error_messages['null'])
+
+        if not self.blank and value in EMPTY_VALUES:
+            raise exceptions.ValidationError(self.error_messages['blank'])
 
     def clean(self, value, model_instance):
         """
@@ -99,7 +127,7 @@ class Field(object):
         self.run_validators(value)
         return value
 
-    def prep_value(self, value):
+    def to_json(self, value):
         """
         Prepare value for saving into JSON structure.
         """
@@ -127,12 +155,6 @@ class Field(object):
         """
         return getattr(obj, self.attname)
 
-    def value_for_object(self, obj, value):
-        """
-        Assign a value to an object
-        """
-        setattr(obj, self.attname, value)
-
 
 class BooleanField(Field):
     default_error_messages = {
@@ -157,13 +179,27 @@ class BooleanField(Field):
 
 
 class StringField(Field):
+    def __init__(self, max_length=None, **kwargs):
+        super(StringField, self).__init__(**kwargs)
+        if max_length is not None:
+            self.validators.append(MaxLengthValidator(max_length))
+
     def to_python(self, value):
         if isinstance(value, basestring) or value is None:
             return value
         return str(value)
 
 
-class FloatField(Field):
+class ScalarField(Field):
+    def __init__(self, min_value=None, max_value=None, **kwargs):
+        super(ScalarField, self).__init__(**kwargs)
+        if min_value is not None:
+            self.validators.append(MinValueValidator(min_value))
+        if max_value is not None:
+            self.validators.append(MaxValueValidator(max_value))
+
+
+class FloatField(ScalarField):
     default_error_messages = {
         'invalid': u"'%s' value must be a float.",
     }
@@ -178,7 +214,7 @@ class FloatField(Field):
             raise exceptions.ValidationError(msg)
 
 
-class IntegerField(Field):
+class IntegerField(ScalarField):
     default_error_messages = {
         'invalid': u"'%s' value must be a integer.",
     }
