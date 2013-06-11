@@ -21,7 +21,7 @@ This example model defines a ``Book``, which has a ``title``, ``genre`` and ``nu
         genre = jsrn.StringField()
         num_pages = jsrn.IntegerField()
 
-``tiltle``, ``genre`` and ``num_pages`` are fields. Each field is specified as a class attribute, and each attribute
+``title``, ``genre`` and ``num_pages`` are fields. Each field is specified as a class attribute, and each attribute
 maps to an attribute on a JSON object.
 
 The above ``Book`` resource would create a JSON object like this:
