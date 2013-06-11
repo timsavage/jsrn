@@ -53,7 +53,19 @@ class ArrayOf(ObjectAs):
             return []
         if isinstance(value, list):
             super_to_python = super(ArrayOf, self).to_python
-            return [super_to_python(i) for i in value]
+            values = []
+            errors = {}
+            for idx, obj in enumerate(value):
+                try:
+                    values.append(super_to_python(obj))
+                except exceptions.ValidationError, ve:
+                    if hasattr(ve, 'message_dict'):
+                        errors[str(idx)] = ve.message_dict
+                    else:
+                        errors[str(idx)] = ve.messages
+            if errors:
+                raise exceptions.ValidationError(errors)
+            return values
         msg = self.error_messages['invalid'] % self.of
         raise exceptions.ValidationError(msg)
 
