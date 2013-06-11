@@ -34,6 +34,13 @@ class ValidationError(Exception):
             return 'ValidationError(%s)' % repr(self.message_dict)
         return 'ValidationError(%s)' % repr(self.messages)
 
+    @property
+    def error_messages(self):
+        if hasattr(self, 'message_dict'):
+            return self.message_dict
+        else:
+            return self.messages
+
     def update_error_dict(self, error_dict):
         if hasattr(self, 'message_dict'):
             if error_dict:

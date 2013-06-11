@@ -231,10 +231,7 @@ def create_resource_from_dict(obj, resource_name=None):
         try:
             attrs[f.attname] = f.clean(obj.get(f.name))
         except exceptions.ValidationError, ve:
-            if hasattr(ve, "message_dict"):
-                errors[f.name] = ve.message_dict
-            else:
-                errors[f.name] = ve.messages
+            errors[f.name] = ve.error_messages
 
     if errors:
         raise exceptions.ValidationError(errors)

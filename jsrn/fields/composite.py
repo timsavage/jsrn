@@ -29,19 +29,11 @@ class ObjectAs(Field):
         msg = self.error_messages['invalid'] % self.of
         raise exceptions.ValidationError(msg)
 
-    def clean(self, value):
-        """
-        Convert the value's type and run validation. Validation errors
-        from to_python and validate are propagated. The correct value is
-        returned if no error is raised.
-        """
-        value = self.to_python(value)
-        return value
-
 
 class ArrayOf(ObjectAs):
     default_error_messages = {
         'invalid': u"Must be a list of ``%r`` objects.",
+        'null': u"List cannot contain null entries.",
     }
 
     def __init__(self, of, **kwargs):
@@ -53,28 +45,26 @@ class ArrayOf(ObjectAs):
             return []
         if isinstance(value, list):
             super_to_python = super(ArrayOf, self).to_python
+
             values = []
             errors = {}
             for idx, obj in enumerate(value):
+                error_key = str(idx)
+
+                # Null is not a valid entry in a list.
+                if obj is None:
+                    errors[error_key] = [self.error_messages['null']]
+                    continue
+
                 try:
                     values.append(super_to_python(obj))
                 except exceptions.ValidationError, ve:
-                    if hasattr(ve, 'message_dict'):
-                        errors[str(idx)] = ve.message_dict
-                    else:
-                        errors[str(idx)] = ve.messages
+                    errors[error_key] = ve.error_messages
+
             if errors:
                 raise exceptions.ValidationError(errors)
+
             return values
         msg = self.error_messages['invalid'] % self.of
         raise exceptions.ValidationError(msg)
-
-    def clean(self, value):
-        """
-        Convert the value's type and run validation. Validation errors
-        from to_python and validate are propagated. The correct value is
-        returned if no error is raised.
-        """
-        value = self.to_python(value)
-        return value
 
