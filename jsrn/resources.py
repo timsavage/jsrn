@@ -55,7 +55,10 @@ class ResourceOptions(object):
 
     @property
     def resource_name(self):
-        return "%s.%s" % (self.module_name, self.name)
+        if self.module_name:
+            return "%s.%s" % (self.module_name, self.name)
+        else:
+            return self.name
 
     def __repr__(self):
         return '<Options for %s>' % self.resource_name
@@ -149,6 +152,12 @@ class Resource(object):
 
         if kwargs:
             raise TypeError("'%s' is an invalid keyword argument for this function" % list(kwargs)[0])
+
+    def __repr__(self):
+        return '<%s: %s>' % (self.__class__.__name__, self)
+
+    def __str__(self):
+        return '%s resource' % self.__class__.__name__
 
     def clean(self):
         """
