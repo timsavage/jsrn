@@ -6,7 +6,7 @@ import registration
 
 
 RESOURCE_TYPE_FIELD = '$'
-DEFAULT_NAMES = ('abstract', 'module_name', 'name',)
+DEFAULT_NAMES = ('verbose_name', 'verbose_name_plural', 'abstract', 'module_name', 'name',)
 
 
 class ResourceOptions(object):
@@ -18,6 +18,8 @@ class ResourceOptions(object):
         self.module_name = None
         self.abstract = False
         self.serialized_name = ''
+        self.verbose_name = None
+        self.verbose_name_plural = None
 
     def contribute_to_class(self, cls, name):
         cls._meta = self
@@ -41,6 +43,11 @@ class ResourceOptions(object):
         else:
             pass
         del self.meta
+
+        if not self.verbose_name:
+            self.verbose_name = self.name.replace('_', ' ').strip('_ ')
+        if not self.verbose_name_plural:
+            self.verbose_name_plural = self.verbose_name + 's'
 
     def add_field(self, field):
         self.fields.append(field)
