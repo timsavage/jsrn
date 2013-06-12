@@ -9,5 +9,9 @@ setup(
     license='BSD',
     author='Tim Savage',
     author_email='tim.savage@poweredbypenguins.org',
-    description='JavaScript Resource Notation'
+    description='JavaScript Resource Notation',
+    extras_require={
+        # Documentation support using Jinja2
+        'doc':  ["jinja2>=2.7"],
+    },
 )
