@@ -1,4 +1,7 @@
-import json
+try:
+    import simplejson as json
+except ImportError:
+    import json
 from jsrn.resources import Resource
 from jsrn.fields import *
 from jsrn.fields.composite import *

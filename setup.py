@@ -11,7 +11,9 @@ setup(
     author_email='tim.savage@poweredbypenguins.org',
     description='JavaScript Resource Notation',
     extras_require={
+        # Extra performance
+        'performance': ['simplejson'],
         # Documentation support using Jinja2
-        'doc':  ["jinja2>=2.7"],
+        'doc': ["jinja2>=2.7"],
     },
 )
