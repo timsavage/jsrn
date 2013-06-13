@@ -57,10 +57,10 @@ class KitchenSinkTestCase(unittest.TestCase):
             book.full_clean()
 
     def test_load_valid_data(self):
-        book = jsrn.load(file(os.path.join(FIXTURE_PATH_ROOT, "book-valid.json")))
+        book = jsrn.load(open(os.path.join(FIXTURE_PATH_ROOT, "book-valid.json")))
 
         self.assertEqual("Consider Phlebas", book.title)
 
     def test_load_invalid_data(self):
         with self.assertRaises(exceptions.ValidationError):
-            jsrn.load(file(os.path.join(FIXTURE_PATH_ROOT, "book-invalid.json")))
+            jsrn.load(open(os.path.join(FIXTURE_PATH_ROOT, "book-invalid.json")))

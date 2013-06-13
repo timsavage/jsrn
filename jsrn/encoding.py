@@ -3,7 +3,7 @@ try:
     import simplejson as json
 except ImportError:
     import json
-import resources
+from jsrn import resources
 
 
 class JSRNEncoder(json.JSONEncoder):

@@ -30,7 +30,7 @@ def loads(s, resource=None):
     :param s: String to load and parse.
     :param resource: A resource instance or a resource name to use as the base for creating a resource.
     """
-    from encoding import build_object_graph
+    from jsrn.encoding import build_object_graph
     if isinstance(resource, Resource):
         resource_name = resource._meta.resource_name
     else:
@@ -46,7 +46,7 @@ def dump(resource, fp, pretty_print=False):
     :param fp: The rile pointer that represents the output file.
     :param pretty_print: Pretty print the output, ie apply newline characters and indentation.
     """
-    from encoding import JSRNEncoder
+    from jsrn.encoding import JSRNEncoder
     return json.dump(resource, fp, cls=JSRNEncoder, indent=4 if pretty_print else None)
 
 
@@ -57,5 +57,5 @@ def dumps(resource, pretty_print=True):
     :param resource: The root resource to dump to a JSON encoded file.
     :param pretty_print: Pretty print the output, ie apply newline characters and indentation.
     """
-    from encoding import JSRNEncoder
+    from jsrn.encoding import JSRNEncoder
     return json.dumps(resource, cls=JSRNEncoder, indent=4 if pretty_print else None)

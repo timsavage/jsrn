@@ -7,7 +7,7 @@ __all__ = ('ObjectAs', 'ArrayOf',)
 
 class ObjectAs(Field):
     default_error_messages = {
-        'invalid': u"Must be a object of type ``%r``.",
+        'invalid': "Must be a object of type ``%r``.",
     }
 
     def __init__(self, of, **kwargs):
@@ -32,8 +32,8 @@ class ObjectAs(Field):
 
 class ArrayOf(ObjectAs):
     default_error_messages = {
-        'invalid': u"Must be a list of ``%r`` objects.",
-        'null': u"List cannot contain null entries.",
+        'invalid': "Must be a list of ``%r`` objects.",
+        'null': "List cannot contain null entries.",
     }
 
     def __init__(self, of, **kwargs):
@@ -58,7 +58,7 @@ class ArrayOf(ObjectAs):
 
                 try:
                     values.append(super_to_python(obj))
-                except exceptions.ValidationError, ve:
+                except exceptions.ValidationError as ve:
                     errors[error_key] = ve.error_messages
 
             if errors:

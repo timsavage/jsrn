@@ -13,22 +13,22 @@ class FieldTestCase(unittest.TestCase):
         target = fields.Field()
 
         self.assertDictEqual({
-            'invalid_choice': u'Value %r is not a valid choice.',
-            'null': u'This field cannot be null.',
-            'blank': u'This field cannot be blank.',
+            'invalid_choice': 'Value %r is not a valid choice.',
+            'null': 'This field cannot be null.',
+            'blank': 'This field cannot be blank.',
         }, target.error_messages)
 
     def test_error_messages_override_add(self):
         target = fields.Field(error_messages={
-            'null': u'Override',
-            'other': u'Other Value',
+            'null': 'Override',
+            'other': 'Other Value',
         })
 
         self.assertDictEqual({
-            'invalid_choice': u'Value %r is not a valid choice.',
-            'null': u'Override',
-            'blank': u'This field cannot be blank.',
-            'other': u'Other Value',
+            'invalid_choice': 'Value %r is not a valid choice.',
+            'null': 'Override',
+            'blank': 'This field cannot be blank.',
+            'other': 'Other Value',
         }, target.error_messages)
 
     def test_set_attributes_from_name(self):

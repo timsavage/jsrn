@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import copy
-from jsrn import exceptions
+import six
+from jsrn import exceptions, registration
 from jsrn.exceptions import ValidationError
-import registration
 
 
 RESOURCE_TYPE_FIELD = '$'
@@ -146,9 +146,7 @@ class ResourceBase(type):
             setattr(cls, name, value)
 
 
-class Resource(object):
-    __metaclass__ = ResourceBase
-
+class Resource(six.with_metaclass(ResourceBase)):
     def __init__(self, **kwargs):
         for field in iter(self._meta.fields):
             try:
@@ -237,7 +235,7 @@ def create_resource_from_dict(obj, resource_name=None):
     for f in resource_type._meta.fields:
         try:
             attrs[f.attname] = f.clean(obj.get(f.name))
-        except exceptions.ValidationError, ve:
+        except exceptions.ValidationError as ve:
             errors[f.name] = ve.error_messages
 
     if errors:

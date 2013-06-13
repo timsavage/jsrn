@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import copy
+import six
 from jsrn import exceptions
 from jsrn.validators import EMPTY_VALUES, MaxLengthValidator, MinValueValidator, MaxValueValidator
 
@@ -16,9 +17,9 @@ class Field(object):
     """
     default_validators = []
     default_error_messages = {
-        'invalid_choice': u'Value %r is not a valid choice.',
-        'null': u'This field cannot be null.',
-        'blank': u'This field cannot be blank.',
+        'invalid_choice': 'Value %r is not a valid choice.',
+        'null': 'This field cannot be null.',
+        'blank': 'This field cannot be blank.',
     }
 
     def __init__(self, verbose_name=None, verbose_name_plural=None, name=None, required=True,
@@ -171,7 +172,7 @@ class Field(object):
 
 class BooleanField(Field):
     default_error_messages = {
-        'invalid': u"'%s' value must be either True or False."
+        'invalid': "'%s' value must be either True or False."
     }
 
     def to_python(self, value):
@@ -181,7 +182,7 @@ class BooleanField(Field):
             # if value is 1 or 0 than it's equal to True or False, but we want
             # to return a true bool for semantic reasons.
             return bool(value)
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             lvalue = value.lower()
             if lvalue in ('t', 'true', 'yes', 'on', '1'):
                 return True
@@ -198,7 +199,7 @@ class StringField(Field):
             self.validators.append(MaxLengthValidator(max_length))
 
     def to_python(self, value):
-        if isinstance(value, basestring) or value is None:
+        if isinstance(value, six.string_types) or value is None:
             return value
         return str(value)
 
@@ -214,7 +215,7 @@ class ScalarField(Field):
 
 class FloatField(ScalarField):
     default_error_messages = {
-        'invalid': u"'%s' value must be a float.",
+        'invalid': "'%s' value must be a float.",
     }
 
     def to_python(self, value):
@@ -229,7 +230,7 @@ class FloatField(ScalarField):
 
 class IntegerField(ScalarField):
     default_error_messages = {
-        'invalid': u"'%s' value must be a integer.",
+        'invalid': "'%s' value must be a integer.",
     }
 
     def to_python(self, value):
@@ -244,7 +245,7 @@ class IntegerField(ScalarField):
 
 class ObjectField(Field):
     default_error_messages = {
-        'invalid': u"Must be a dict.",
+        'invalid': "Must be a dict.",
     }
 
     def __init__(self, **kwargs):
@@ -265,7 +266,7 @@ class ObjectField(Field):
 
 class ArrayField(Field):
     default_error_messages = {
-        'invalid': u"Must be a list.",
+        'invalid': "Must be a list.",
     }
 
     def __init__(self, **kwargs):
