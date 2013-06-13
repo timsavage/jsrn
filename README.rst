@@ -4,6 +4,12 @@ JSRN - JavaScript Resource Notation for Python
 
 A JSON based notation for resources that can be easily converted into object graphs.
 
+.. image:: https://travis-ci.org/timsavage/jsrn.png?branch=master
+    :target: https://travis-ci.org/timsavage/jsrn
+    :alt: Travis CI Status
+
+Did you say `documentation <https://jsrn.readthedocs.org/en/latest/>`_?
+
 
 Highlights
 **********
@@ -14,6 +20,7 @@ Highlights
 * Field and Resource level validation
 * Loading and saving of JSON documents
 * Easy extension to support custom fields
+* Python 2.7+ and Python 3.3+ supported
 
 
 Upcoming features
@@ -23,13 +30,23 @@ Upcoming features
 
 * Customisable generation of documentation of resources (for integration into `Sphinx <http://sphinx-doc.org/>`_)
 * Complete documentation (around 70-80% complete for current features)
-* Integration with `Travis-CI <https://travis-ci.org/>`_ (post move to GitHub)
+
 
 **Planning**
 
 * Fields for non primitive types (ie Date, DateTime)
-* Support for Python 3
 * Contrib projects for integration with other libraries (ie `Django <https://www.djangoproject.com/>`_ Models/Forms)
+
+
+Requires
+********
+
+* six
+
+**Optional**
+
+* jinja2 >= 2.7 - For documentation generation
+* simplejson - Performance improvements
 
 
 Example
