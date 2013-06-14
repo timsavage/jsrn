@@ -213,6 +213,8 @@ An object structure represented in Python by a *dict* instance.
 .. note: The object values in the object are not defined.
 
 
+.. _field-composite_fields:
+
 Composite fields
 ****************
 
@@ -267,7 +269,7 @@ Example, the *authors* array:
         "title": "Consider Phlebas",
         "authors": [
             {
-                "$": "kitchensink.Author",
+                "$": "Author",
                 "name": "Iain M. Banks"
             }
         ]
