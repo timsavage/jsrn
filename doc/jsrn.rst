@@ -67,9 +67,8 @@ where an image element will require a source image.
 Additional field types
 **********************
 
-While JSRN is not intended to change the JSON format there is also a secondary objective to simplify mapping of fields 
-to native data types when building an object graph. To this end JSRN also provides requirements for non-standard JSON 
-types.
+While JSRN is intended work on top of JSON there is also a secondary objective of simplifying the mapping of fields to
+native data types. To this end JSRN defines requirements for certain non-standard JSON types.
 
 Date and Time
 =============
