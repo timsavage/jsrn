@@ -1,6 +1,7 @@
 from jsrn import exceptions
 from jsrn.resources import create_resource_from_dict
 from jsrn.fields import Field
+from jsrn.validators import EMPTY_VALUES
 
 __all__ = ('ObjectAs', 'ArrayOf',)
 
@@ -29,6 +30,11 @@ class ObjectAs(Field):
         msg = self.error_messages['invalid'] % self.of
         raise exceptions.ValidationError(msg)
 
+    def validate(self, value):
+        super(ObjectAs, self).validate(value)
+        if value not in EMPTY_VALUES:
+            value.full_clean()
+
 
 class ArrayOf(ObjectAs):
     default_error_messages = {
@@ -40,31 +46,39 @@ class ArrayOf(ObjectAs):
         kwargs.setdefault('default', list)
         super(ArrayOf, self).__init__(of, **kwargs)
 
+    def _process_list(self, value_list, method):
+        values = []
+        errors = {}
+        for idx, value in enumerate(value_list):
+            error_key = str(idx)
+
+            try:
+                values.append(method(value))
+            except exceptions.ValidationError as ve:
+                errors[error_key] = ve.error_messages
+
+        if errors:
+            raise exceptions.ValidationError(errors)
+
+        return values
+
     def to_python(self, value):
         if value is None:
             return []
         if isinstance(value, list):
             super_to_python = super(ArrayOf, self).to_python
 
-            values = []
-            errors = {}
-            for idx, obj in enumerate(value):
-                error_key = str(idx)
+            def process(val):
+                if val is None:
+                    raise exceptions.ValidationError(self.error_messages['null'])
+                return super_to_python(val)
 
-                # Null is not a valid entry in a list.
-                if obj is None:
-                    errors[error_key] = [self.error_messages['null']]
-                    continue
-
-                try:
-                    values.append(super_to_python(obj))
-                except exceptions.ValidationError as ve:
-                    errors[error_key] = ve.error_messages
-
-            if errors:
-                raise exceptions.ValidationError(errors)
-
-            return values
+            return self._process_list(value, process)
         msg = self.error_messages['invalid'] % self.of
         raise exceptions.ValidationError(msg)
 
+    def validate(self, value):
+        super(ObjectAs, self).validate(value)
+        if value not in EMPTY_VALUES:
+            super_validate = super(ArrayOf, self).validate
+            self._process_list(value, super_validate)

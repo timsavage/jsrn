@@ -256,5 +256,5 @@ def create_resource_from_dict(obj, resource_name=None):
         raise exceptions.ValidationError(errors)
 
     new_resource = resource_type(**attrs)
-    new_resource.clean()
+    new_resource.full_clean()
     return new_resource

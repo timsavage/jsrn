@@ -1,18 +1,24 @@
 {
-    "$": "library.Book",
-    "authors": [
+    "$": "Library",
+    "name": "Public Library",
+    "books": [
         {
-            "$": "Author",
-            "name": "Iain M. Banks"
+            "$": "library.Book",
+            "authors": [
+                {
+                    "$": "Author",
+                    "name": "Iain M. Banks"
+                }
+            ],
+            "fiction": true,
+            "genre": "sci-fi",
+            "num_pages": 471,
+            "publisher": {
+                "$": "Publisher",
+                "name": "Macmillan"
+            },
+            "rrp": 19.5,
+            "title": "Consider Phlebas"
         }
-    ],
-    "fiction": true,
-    "genre": "sci-fi",
-    "num_pages": 471,
-    "publisher": {
-        "$": "Publisher",
-        "name": "Macmillan"
-    },
-    "rrp": 19.5,
-    "title": "Consider Phlebas"
+    ]
 }
