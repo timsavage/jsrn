@@ -20,6 +20,7 @@ class ResourceOptions(object):
         self.serialized_name = ''
         self.verbose_name = None
         self.verbose_name_plural = None
+        self.parents = []
 
     def contribute_to_class(self, cls, name):
         cls._meta = self
@@ -39,8 +40,6 @@ class ResourceOptions(object):
             # Any leftover attributes must be invalid.
             if meta_attrs != {}:
                 raise TypeError("'class Meta' got invalid attribute(s): %s" % ','.join(meta_attrs.keys()))
-        else:
-            pass
         del self.meta
 
         if not self.verbose_name:
@@ -69,6 +68,15 @@ class ResourceOptions(object):
         else:
             return self.name
 
+    @property
+    def parent_resource_names(self):
+        """
+        List of parent resource names.
+        """
+        if not hasattr(self, '_parent_resource_names'):
+            self._parent_resource_names = [p._meta.resource_name for p in self.parents]
+        return self._parent_resource_names
+
     def __repr__(self):
         return '<Options for %s>' % self.resource_name
 
@@ -94,10 +102,13 @@ class ResourceBase(type):
             meta = getattr(new_class, 'Meta', None)
         else:
             meta = attr_meta
+        base_meta = getattr(new_class, '_meta', None)
 
         new_class.add_to_class('_meta', ResourceOptions(meta))
         if not abstract:
-            pass  # Placeholder for future code...
+            # Namespace is inherited
+            if not new_class._meta.name_space and base_meta:
+                new_class._meta.name_space = base_meta.name_space
 
         # Bail out early if we have already created this class.
         r = registration.get_resource(new_class._meta.resource_name)
@@ -128,6 +139,8 @@ class ResourceBase(type):
                                     'base class %r' % (field.attname, name, base.__name__))
             for field in parent_fields:
                 new_class.add_to_class(field.attname, copy.deepcopy(field))
+
+            new_class._meta.parents.append(base)
 
         if abstract:
             return new_class
@@ -225,12 +238,11 @@ def create_resource_from_dict(obj, resource_name=None):
         raise exceptions.ValidationError("Resource `%s` is not registered." % document_resource_name)
 
     # Check if we have an inherited type.
-    if resource_name and resource_name != document_resource_name:
-        # TODO: Assume inherited for now...
-        pass
-        # raise exceptions.ValidationError(
-        #     "Expected resource `%s` does not match resource defined in JSRN document `%s`." % (
-        #         resource_name, document_resource_name))
+    if resource_name and not (resource_name == document_resource_name or
+                              resource_name in resource_type._meta.parent_resource_names):
+        raise exceptions.ValidationError(
+            "Expected resource `%s` does not match resource defined in JSRN document `%s`." % (
+                resource_name, document_resource_name))
 
     errors = {}
     attrs = {}

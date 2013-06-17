@@ -19,7 +19,13 @@ class Publisher(jsrn.Resource):
     name = jsrn.StringField()
 
 
-class Book(jsrn.Resource):
+class LibraryBook(jsrn.Resource):
+    class Meta:
+        abstract = True
+        name_space = "library"
+
+
+class Book(LibraryBook):
     title = jsrn.StringField()
     num_pages = jsrn.IntegerField()
     rrp = jsrn.FloatField()
@@ -32,8 +38,10 @@ class Book(jsrn.Resource):
     authors = jsrn.ArrayOf(Author)
     publisher = jsrn.ObjectAs(Publisher)
 
-    class Meta:
-        name_space = "library"
+
+class Library(jsrn.Resource):
+    name = jsrn.StringField()
+    books = jsrn.ArrayOf(LibraryBook)
 
 
 class KitchenSinkTestCase(unittest.TestCase):
@@ -44,10 +52,14 @@ class KitchenSinkTestCase(unittest.TestCase):
         book.publisher = Publisher(name="Macmillan")
         book.authors.append(Author(name="Iain M. Banks"))
 
-        actual = jsrn.dumps(book, pretty_print=False)
-        expected = '{"publisher": {"name": "Macmillan", "$": "Publisher"}, "num_pages": 471, ' \
+        library = Library(name="Public Library", books=[book])
+
+        actual = jsrn.dumps(library, pretty_print=False)
+        expected = '{"books": [' \
+                   '{"publisher": {"name": "Macmillan", "$": "Publisher"}, "num_pages": 471, ' \
                    '"$": "library.Book", "title": "Consider Phlebas", "fiction": true, ' \
-                   '"authors": [{"name": "Iain M. Banks", "$": "Author"}], "genre": "sci-fi", "rrp": 19.5}'
+                   '"authors": [{"name": "Iain M. Banks", "$": "Author"}], "genre": "sci-fi", "rrp": 19.5}], ' \
+                   '"name": "Public Library", "$": "Library"}'
 
         self.assertEqual(expected, actual)
 
@@ -56,8 +68,10 @@ class KitchenSinkTestCase(unittest.TestCase):
         book.publisher = Publisher(name="Macmillan")
         book.authors.append(Author(name="Iain M. Banks"))
 
+        library = Library(name="Public Library", books=[book])
+
         with self.assertRaises(exceptions.ValidationError):
-            book.full_clean()
+            library.full_clean()
 
     def test_load_valid_data(self):
         book = jsrn.load(open(os.path.join(FIXTURE_PATH_ROOT, "book-valid.json")))
