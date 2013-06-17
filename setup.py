@@ -5,11 +5,12 @@ setup(
     name='jsrn',
     version=__version__,
     packages=['jsrn', 'jsrn.fields'],
-    url='',
+    url='https://github.com/timsavage/jsrn',
     license='BSD',
     author='Tim Savage',
     author_email='tim.savage@poweredbypenguins.org',
-    description='JavaScript Resource Notation',
+    description='JavaScript Resource Notation for Python',
+    install_requires=['six'],
     extras_require={
         # Extra performance
         'performance': ['simplejson'],
