@@ -1,15 +1,16 @@
 from setuptools import setup
-from jsrn import __version__
 
 setup(
     name='jsrn',
-    version=__version__,
-    packages=['jsrn', 'jsrn.fields'],
+    version="0.2.0",
     url='https://github.com/timsavage/jsrn',
-    license='BSD',
+    license='LICENSE',
     author='Tim Savage',
     author_email='tim.savage@poweredbypenguins.org',
     description='JavaScript Resource Notation for Python',
+    long_description=open("README.rst").read(),
+    package_dir={'': 'src'},
+    packages=['jsrn', 'jsrn.fields'],
     install_requires=['six'],
     extras_require={
         # Extra performance
@@ -17,4 +18,14 @@ setup(
         # Documentation support using Jinja2
         'doc': ["jinja2>=2.7"],
     },
+
+    classifiers=[
+        'Development Status :: 2 - Beta',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: BSD',
+        'Natural Language :: English',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.3',
+    ],
 )
