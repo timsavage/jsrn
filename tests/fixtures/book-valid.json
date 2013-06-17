@@ -2,7 +2,7 @@
     "$": "library.Book",
     "authors": [
         {
-            "$": "kitchensink.Author",
+            "$": "Author",
             "name": "Iain M. Banks"
         }
     ],
@@ -10,7 +10,7 @@
     "genre": "sci-fi",
     "num_pages": 471,
     "publisher": {
-        "$": "kitchensink.Publisher",
+        "$": "Publisher",
         "name": "Macmillan"
     },
     "rrp": 19.5,

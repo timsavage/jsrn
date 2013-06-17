@@ -6,7 +6,7 @@ from jsrn.exceptions import ValidationError
 
 
 RESOURCE_TYPE_FIELD = '$'
-DEFAULT_NAMES = ('verbose_name', 'verbose_name_plural', 'abstract', 'module_name', 'name',)
+DEFAULT_NAMES = ('verbose_name', 'verbose_name_plural', 'abstract', 'name_space', 'name',)
 
 
 class ResourceOptions(object):
@@ -15,7 +15,7 @@ class ResourceOptions(object):
         self.fields = []
         self.virtual_fields = []
         self.name = None
-        self.module_name = None
+        self.name_space = None
         self.abstract = False
         self.serialized_name = ''
         self.verbose_name = None
@@ -24,7 +24,6 @@ class ResourceOptions(object):
     def contribute_to_class(self, cls, name):
         cls._meta = self
         self.name = cls.__name__
-        self.module_name = cls.__module__
 
         if self.meta:
             meta_attrs = self.meta.__dict__.copy()
@@ -62,8 +61,11 @@ class ResourceOptions(object):
 
     @property
     def resource_name(self):
-        if self.module_name:
-            return "%s.%s" % (self.module_name, self.name)
+        """
+        Full name of resource including namespace (if specified)
+        """
+        if self.name_space:
+            return "%s.%s" % (self.name_space, self.name)
         else:
             return self.name
 

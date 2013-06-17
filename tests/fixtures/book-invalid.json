@@ -2,14 +2,14 @@
     "$": "library.Book",
     "authors": [
         {
-            "$": "kitchensink.Author",
+            "$": "Author",
             "name": "Iain M. Banks"
         },
         {
-            "$": "kitchensink.Author"
+            "$": "Author"
         },
         {
-            "$": "kitchensink.OtherAuthor",
+            "$": "OtherAuthor",
             "name": "Some other guy."
         }
     ],
@@ -17,7 +17,7 @@
     "genre": "space opera",
     "num_pages": "471",
     "publisher": {
-        "$": "kitchensink.Publisher",
+        "$": "Publisher",
         "name": "Macmillan"
     },
     "rrp": 19.5,
