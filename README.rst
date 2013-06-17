@@ -82,17 +82,17 @@ Example
     >>> b.authors.append(Author(name="Iain M. Banks"))
     >>> jsrn.dumps(b, pretty_print=True)
     {
-        "$": "__main__.Book",
+        "$": "Book",
         "authors": [
             {
-                "$": "__main__.Author",
+                "$": "Author",
                 "name": "Iain M. Banks"
             }
         ],
         "genre": "Space Opera",
         "num_pages": 471,
         "publisher": {
-            "$": "__main__.Publisher",
+            "$": "Publisher",
             "name": "Macmillan"
         },
         "title": "Consider Phlebas"
