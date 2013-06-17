@@ -67,9 +67,9 @@ where an image element will require a source image.
 Additional field types
 **********************
 
-While JSRN is not intended to change the final JSON format in any way there is also the objective to simply mapping of
-fields to native data types when building an object graph. To this end JSRN also provides some additional requirements
-on non-standard JSON types to simply this.
+While JSRN is not intended to change the JSON format there is also a secondary objective to simplify mapping of fields 
+to native data types when building an object graph. To this end JSRN also provides requirements for non-standard JSON 
+types.
 
 Date and Time
 =============
@@ -81,5 +81,5 @@ are made by a development team when selecting a date format. Common ways of spec
 * String formatted to ISO_8601
 * Integer seconds since epoch
 
-Of these formats the only real option is an ISO 8601 format. The ISO 8601 format provides a un-ambiguous format that
-includes timezone identification as such this is the format that should be used within JSRN resources.
+The ISO 8601 format provides a un-ambiguous format that includes timezone information as such this is the format that 
+should be used within JSRN resources.
