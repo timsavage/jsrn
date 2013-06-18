@@ -8,8 +8,6 @@ A JSON based notation for resources that can be easily converted into object gra
     :target: https://travis-ci.org/timsavage/jsrn
     :alt: Travis CI Status
 
-Did you say `documentation <https://jsrn.readthedocs.org/en/latest/>`_?
-
 
 Highlights
 **********
@@ -18,9 +16,16 @@ Highlights
 * Support for all JSON primitive types
 * Fields for building composite resources
 * Field and Resource level validation
-* Loading and saving of JSON documents
 * Easy extension to support custom fields
 * Python 2.7+ and Python 3.3+ supported
+
+
+Quick links
+***********
+
+* `Documentation <https://jsrn.readthedocs.org/en/latest/>`_
+* `Project home <https://github.com/timsavage/jsrn>`_
+* `Issue tracker <https://github.com/timsavage/jsrn/issues>`_
 
 
 Upcoming features
@@ -30,12 +35,12 @@ Upcoming features
 
 * Customisable generation of documentation of resources (for integration into `Sphinx <http://sphinx-doc.org/>`_)
 * Complete documentation (around 70-80% complete for current features)
+* Fields for non primitive types (ie Date, DateTime)
 
 
 **Planning**
 
-* Fields for non primitive types (ie Date, DateTime)
-* Contrib projects for integration with other libraries (ie `Django <https://www.djangoproject.com/>`_ Models/Forms)
+* Integration with other libraries (ie `Django <https://www.djangoproject.com/>`_ Models/Forms)
 
 
 Requires
