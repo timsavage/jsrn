@@ -31,7 +31,7 @@ def loads(s, resource=None):
     :param resource: A resource instance or a resource name to use as the base for creating a resource.
     """
     from jsrn.encoding import build_object_graph
-    if isinstance(resource, Resource):
+    if isinstance(resource, type) and issubclass(resource, Resource):
         resource_name = resource._meta.resource_name
     else:
         resource_name = resource
