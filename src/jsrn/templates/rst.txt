@@ -1,4 +1,0 @@
-*********
-Resources
-*********
-{% include "rst-body.txt" %}
