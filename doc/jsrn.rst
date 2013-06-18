@@ -46,9 +46,10 @@ name-space in *lower_underscore* case.
 * ``library.Book``
 * ``my_project.document.DocumentResource``
 
-:hint: As JSRN should work any language (even though the reference implementation is in Python) care should be taken
- to not use characters that are not valid in resource and name space names. For example a "-" character would not be
- valid in most languages for either a namespace or class/object name.
+.. hint::
+    As JSRN should work any language (even though the reference implementation is in Python) care should be taken
+    to not use characters that are not valid in resource and name space names. For example a "-" character would not be
+    valid in most languages for either a namespace or class/object name.
 
 
 ``$`` field and polymorphism
@@ -60,8 +61,9 @@ desktop publishing application all elements will require some basic data such as
 different types of element will require additional specific data eg a text block will require text, font information
 where an image element will require a source image.
 
-:info: The Python JSRN implementation includes support for polymorphic resources. Along with inheritance and abstract
- resources.
+.. note::
+    The Python JSRN implementation includes support for polymorphic resources. Along with inheritance and abstract
+    resources.
 
 
 Additional field types
