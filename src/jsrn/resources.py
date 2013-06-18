@@ -88,7 +88,13 @@ class ResourceBase(type):
     def __new__(cls, name, bases, attrs):
         super_new = super(ResourceBase, cls).__new__
 
-        parents = [b for b in bases if isinstance(b, ResourceBase)]
+        # attrs will never be empty for classes declared in the standard way
+        # (ie. with the `class` keyword). This is quite robust.
+        if name == 'NewBase' and attrs == {}:
+            return super_new(cls, name, bases, attrs)
+
+        parents = [b for b in bases if isinstance(b, ResourceBase) and
+                                       not (b.__name__ == 'NewBase' and b.__mro__ == (b, object))]
         if not parents:
             # If this isn't a subclass of Resource, don't do anything special.
             return super_new(cls, name, bases, attrs)
