@@ -4,10 +4,13 @@ JSRN - JavaScript Resource Notation for Python
 
 A JSON based notation for resources that can be easily converted into object graphs.
 
+.. note::
+    Official location of this project is now `GitHub <https://github.com/timsavage/jsrn>`_ (for Travis-CI support), the
+    `BitBucket <https://bitbucket.org/timsavage/jsrn>`_ repository may not contain the latest code.
+
 .. image:: https://travis-ci.org/timsavage/jsrn.png?branch=master
     :target: https://travis-ci.org/timsavage/jsrn
     :alt: Travis CI Status
-
 
 Highlights
 **********
