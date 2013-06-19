@@ -6,21 +6,22 @@ from jsrn.exceptions import ValidationError
 
 
 RESOURCE_TYPE_FIELD = '$'
-DEFAULT_NAMES = ('verbose_name', 'verbose_name_plural', 'abstract', 'name_space', 'name',)
+META_OPTION_NAMES = ('name', 'name_space', 'verbose_name', 'verbose_name_plural', 'abstract', 'doc_group', )
 
 
 class ResourceOptions(object):
     def __init__(self, meta):
         self.meta = meta
+        self.parents = []
         self.fields = []
         self.virtual_fields = []
+
         self.name = None
         self.name_space = None
-        self.abstract = False
-        self.serialized_name = ''
         self.verbose_name = None
         self.verbose_name_plural = None
-        self.parents = []
+        self.abstract = False
+        self.doc_group = None
 
     def contribute_to_class(self, cls, name):
         cls._meta = self
@@ -31,7 +32,7 @@ class ResourceOptions(object):
             for name in self.meta.__dict__:
                 if name.startswith('_'):
                     del meta_attrs[name]
-            for attr_name in DEFAULT_NAMES:
+            for attr_name in META_OPTION_NAMES:
                 if attr_name in meta_attrs:
                     setattr(self, attr_name, meta_attrs.pop(attr_name))
                 elif hasattr(self.meta, attr_name):
@@ -264,3 +265,4 @@ def create_resource_from_dict(obj, resource_name=None):
     new_resource = resource_type(**attrs)
     new_resource.full_clean()
     return new_resource
+
