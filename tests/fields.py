@@ -16,6 +16,7 @@ class FieldTestCase(unittest.TestCase):
             'invalid_choice': 'Value %r is not a valid choice.',
             'null': 'This field cannot be null.',
             'blank': 'This field cannot be blank.',
+            'required': 'This field is required.',
         }, target.error_messages)
 
     def test_error_messages_override_add(self):
@@ -28,6 +29,7 @@ class FieldTestCase(unittest.TestCase):
             'invalid_choice': 'Value %r is not a valid choice.',
             'null': 'Override',
             'blank': 'This field cannot be blank.',
+            'required': 'This field is required.',
             'other': 'Other Value',
         }, target.error_messages)
 
