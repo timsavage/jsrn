@@ -23,8 +23,8 @@ class Field(object):
         'required': 'This field is required.',
     }
 
-    def __init__(self, verbose_name=None, verbose_name_plural=None, name=None, required=True,
-                 blank=False, null=False, default=NOT_PROVIDED, choices=None, help_text='', validators=[],
+    def __init__(self, verbose_name=None, verbose_name_plural=None, name=None, null=False, choices=None,
+                 use_default_if_not_provided=False, default=NOT_PROVIDED, help_text='', validators=[],
                  error_messages=None):
         """
         Initialisation of a Field.
@@ -32,11 +32,10 @@ class Field(object):
         :param verbose_name: Display name of field.
         :param verbose_name_plural: Plural display name of field.
         :param name: Name of field in JSON form.
-        :param required: This value must be defined in a loaded file.
-        :param blank: This value can be a non empty value.
-        :param null: This value can be null.
-        :param default: Default value for this field.
+        :param null: This value can be null/None.
         :param choices: Collection of valid choices for this field.
+        :param default: Default value for this field.
+        :param use_default_if_not_provided: Use the default value if a field is not provided in a document.
         :param help_text: Help text to describe this field when generating a schema.
         :param validators: Additional validators, these should be a callable that takes a single value.
         :param error_messages: Dictionary that overrides error messages (or providers additional messages for custom
@@ -44,9 +43,8 @@ class Field(object):
         """
         self.verbose_name, self.verbose_name_plural = verbose_name, verbose_name_plural
         self.name = name
-        self.required = required
-        self.blank, self.null = blank, null
-        self.default, self.choices = default, choices
+        self.null, self.choices = null, choices
+        self.default, self.use_default_if_not_provided = default, use_default_if_not_provided
         self.help_text = help_text
         self.validators = self.default_validators + validators
 
@@ -122,14 +120,8 @@ class Field(object):
             msg = self.error_messages['invalid_choice'] % value
             raise exceptions.ValidationError(msg)
 
-        if value in EMPTY_VALUES and not self.required:
-            return
-
         if value is None and not self.null:
             raise exceptions.ValidationError(self.error_messages['null'])
-
-        if not self.blank and value in EMPTY_VALUES:
-            raise exceptions.ValidationError(self.error_messages['blank'])
 
     def clean(self, value):
         """
@@ -137,6 +129,8 @@ class Field(object):
         from to_python and validate are propagated. The correct value is
         returned if no error is raised.
         """
+        if value is NOT_PROVIDED:
+            value = self.get_default() if self.use_default_if_not_provided else None
         value = self.to_python(value)
         self.validate(value)
         self.run_validators(value)
