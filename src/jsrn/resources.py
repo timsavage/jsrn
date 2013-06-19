@@ -186,6 +186,14 @@ class Resource(six.with_metaclass(ResourceBase)):
     def __str__(self):
         return '%s resource' % self.__class__.__name__
 
+    def extra_attrs(self, attrs):
+        """
+        Called during deserialisation of data if there are any extra fields defined in the document.
+
+        This allows the resource to decide how to handle these fields. By default they are ignored.
+        """
+        pass
+
     def clean(self):
         """
         Chance to do more in depth validation.
@@ -255,14 +263,21 @@ def create_resource_from_dict(obj, resource_name=None):
     attrs = {}
     for f in resource_type._meta.fields:
         try:
-            attrs[f.attname] = f.clean(obj.get(f.name))
-        except exceptions.ValidationError as ve:
-            errors[f.name] = ve.error_messages
+            value = obj.pop(f.name)
+        except KeyError:
+            if f.required:
+                errors[f.name] = f.error_messages['required']
+        else:
+            try:
+                attrs[f.attname] = f.clean(value)
+            except exceptions.ValidationError as ve:
+                errors[f.name] = ve.error_messages
 
     if errors:
         raise exceptions.ValidationError(errors)
 
     new_resource = resource_type(**attrs)
+    if obj:
+        new_resource.extra_attrs(obj)
     new_resource.full_clean()
     return new_resource
-
