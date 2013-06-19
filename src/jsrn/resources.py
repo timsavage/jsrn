@@ -3,6 +3,7 @@ import copy
 import six
 from jsrn import exceptions, registration
 from jsrn.exceptions import ValidationError
+from jsrn.fields import NOT_PROVIDED
 
 
 RESOURCE_TYPE_FIELD = '$'
@@ -262,16 +263,11 @@ def create_resource_from_dict(obj, resource_name=None):
     errors = {}
     attrs = {}
     for f in resource_type._meta.fields:
+        value = obj.pop(f.name, NOT_PROVIDED)
         try:
-            value = obj.pop(f.name)
-        except KeyError:
-            if f.required:
-                errors[f.name] = f.error_messages['required']
-        else:
-            try:
-                attrs[f.attname] = f.clean(value)
-            except exceptions.ValidationError as ve:
-                errors[f.name] = ve.error_messages
+            attrs[f.attname] = f.clean(value)
+        except exceptions.ValidationError as ve:
+            errors[f.name] = ve.error_messages
 
     if errors:
         raise exceptions.ValidationError(errors)
