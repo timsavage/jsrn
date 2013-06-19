@@ -20,6 +20,7 @@ class Field(object):
         'invalid_choice': 'Value %r is not a valid choice.',
         'null': 'This field cannot be null.',
         'blank': 'This field cannot be blank.',
+        'required': 'This field is required.',
     }
 
     def __init__(self, verbose_name=None, verbose_name_plural=None, name=None, required=True,
