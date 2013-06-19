@@ -93,8 +93,8 @@ class ResourceBase(type):
         if name == 'NewBase' and attrs == {}:
             return super_new(cls, name, bases, attrs)
 
-        parents = [b for b in bases if isinstance(b, ResourceBase) and
-                                       not (b.__name__ == 'NewBase' and b.__mro__ == (b, object))]
+        parents = [b for b in bases if isinstance(b, ResourceBase) and not (b.__name__ == 'NewBase'
+                                                                            and b.__mro__ == (b, object))]
         if not parents:
             # If this isn't a subclass of Resource, don't do anything special.
             return super_new(cls, name, bases, attrs)
