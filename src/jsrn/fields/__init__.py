@@ -114,8 +114,8 @@ class Field(object):
 
     def validate(self, value):
         if self.choices and value not in EMPTY_VALUES:
-            for option_key, option_value in self.choices:
-                if value == option_key:
+            for choice in self.choices:
+                if value == choice[0]:
                     return
             msg = self.error_messages['invalid_choice'] % value
             raise exceptions.ValidationError(msg)
