@@ -18,6 +18,7 @@ class ObjectAs(Field):
             raise TypeError("``%r`` is not a valid type for a related field." % of)
         self.of = of
 
+        kwargs.setdefault('default', lambda:of())
         super(ObjectAs, self).__init__(**kwargs)
 
     def to_python(self, value):
