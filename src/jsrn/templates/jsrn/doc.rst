@@ -6,6 +6,7 @@
 {{ '=' * resource.verbose_name|length }}
 {% if resource.description %}
 {{ resource.description }}{% endif %}
+
 {% include "jsrn/doc-fields.rst" %}
 {% endfor %}
 {% endblock %}

@@ -50,10 +50,8 @@ class ResourceDocumentation(object):
                 "choices": [c[0] for c in f.choices or []],
                 "has_default": f.has_default(),
                 "default": f.get_default(),
-                "required": f.required,
-                "optional": not f.required,
-                "null": f.null,
-                "blank": f.blank
+                "optional": f.null,
+                "null": f.null
             } for f in self._meta.fields), key=lambda f: f['name'])
         return self._fields
 
