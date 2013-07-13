@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import unittest
-from jsrn import fields
+import datetime
+from jsrn import fields, datetimeutil
 from jsrn.exceptions import ValidationError
+from _fields_basic_helpers import create_simple_test_method
 
 
 class ObjectValue(object):
@@ -96,33 +98,40 @@ class FieldTestCase(unittest.TestCase):
         self.assertEqual("test_value", actual)
 
 
-class BooleanFieldTestCase(unittest.TestCase):
-    def test_to_python_bool_value(self):
-        target = fields.BooleanField()
-        self.assertTrue(target.to_python(True))
-        self.assertFalse(target.to_python(False))
 
-    def test_to_python_true_string(self):
-        target = fields.BooleanField()
-        self.assertTrue(target.to_python("t"))
-        self.assertTrue(target.to_python("True"))
-        self.assertTrue(target.to_python("yes"))
-        self.assertTrue(target.to_python("ON"))
-        self.assertTrue(target.to_python("1"))
+DATE_TIME_AWARE = datetime.datetime(2013, 7, 13, 16, 54, 46, 123000, datetimeutil.utc)
+DATE_TIME_NAIVE = datetime.datetime(2013, 7, 13, 16, 54, 46, 123000)
+DATE_TIME_STRING = "2013-07-13T16:54:46.123Z"
+DATE_TIME_STRING_INVALID = "2013/07/13T16:54:46.123"
 
-    def test_to_python_false_string(self):
-        target = fields.BooleanField()
-        self.assertFalse(target.to_python("f"))
-        self.assertFalse(target.to_python("False"))
-        self.assertFalse(target.to_python("no"))
-        self.assertFalse(target.to_python("OFF"))
-        self.assertFalse(target.to_python("0"))
+TO_PYTHON_TESTS = [
+    (fields.BooleanField(), None, None),
+    (fields.BooleanField(), True, True),
+    (fields.BooleanField(), "t", True),
+    (fields.BooleanField(), "True", True),
+    (fields.BooleanField(), "yes", True),
+    (fields.BooleanField(), "ON", True),
+    (fields.BooleanField(), "1", True),
+    (fields.BooleanField(), False, False),
+    (fields.BooleanField(), "f", False),
+    (fields.BooleanField(), "False", False),
+    (fields.BooleanField(), "no", False),
+    (fields.BooleanField(), "OFF", False),
+    (fields.BooleanField(), "0", False),
+    (fields.BooleanField(), 23424, ValidationError),
+    (fields.BooleanField(), "Value", ValidationError),
 
-    def test_to_python_other_values(self):
-        target = fields.BooleanField()
+    (fields.DateTimeField(assume_local=False), None, None),
+    (fields.DateTimeField(assume_local=False), DATE_TIME_STRING, DATE_TIME_AWARE),
+    (fields.DateTimeField(assume_local=False), DATE_TIME_AWARE, DATE_TIME_AWARE),
+    (fields.DateTimeField(assume_local=False), DATE_TIME_STRING_INVALID, ValidationError),
+    (fields.DateTimeField(assume_local=False), 2345, ValidationError),
+]
 
-        with self.assertRaises(ValidationError):
-            target.to_python(23424)
 
-        with self.assertRaises(ValidationError):
-            target.to_python("Value")
+class FieldToPythonTestCase(unittest.TestCase):
+    pass
+
+for idx, (field, value, expected) in enumerate(TO_PYTHON_TESTS):
+    name, method = create_simple_test_method(field, "to_python", value, expected, idx)
+    setattr(FieldToPythonTestCase, name, method)
