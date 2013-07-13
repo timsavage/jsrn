@@ -1,0 +1,25 @@
+<table>
+<thead>
+    <tr>
+        <th>Field</th>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Comments</th>
+    </tr>
+</thead>
+<tbody>
+{% for field in resource.fields %}
+    <tr>
+        <td>
+            <code>{% if field.optional %}[{% endif %}{{ field.name }}{% if field.optional %}]{% endif %}</code>
+        </td>
+        <td>{{ field.verbose_name|title }}</td>
+        <td></td>
+        <td>
+            {% if field.optional %}Optional{% endif %}
+            {{ field.help_text }}
+        </td>
+    </tr>
+{% endfor %}
+</tbody>
+</table>

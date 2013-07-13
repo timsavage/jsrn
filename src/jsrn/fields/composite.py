@@ -11,13 +11,14 @@ class ObjectAs(Field):
         'invalid': "Must be a object of type ``%r``.",
     }
 
-    def __init__(self, of, **kwargs):
+    def __init__(self, resource, **kwargs):
         try:
-            of._meta
+            resource._meta
         except AttributeError:
             raise TypeError("``%r`` is not a valid type for a related field." % of)
-        self.of = of
+        self.of = resource
 
+        kwargs.setdefault('default', lambda:resource())
         super(ObjectAs, self).__init__(**kwargs)
 
     def to_python(self, value):
@@ -42,9 +43,9 @@ class ArrayOf(ObjectAs):
         'null': "List cannot contain null entries.",
     }
 
-    def __init__(self, of, **kwargs):
+    def __init__(self, resource, **kwargs):
         kwargs.setdefault('default', list)
-        super(ArrayOf, self).__init__(of, **kwargs)
+        super(ArrayOf, self).__init__(resource, **kwargs)
 
     def _process_list(self, value_list, method):
         values = []

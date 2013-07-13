@@ -1,0 +1,15 @@
+{% extends "jsrn/base.html" %}
+
+{% block body %}
+{% for resource in resources %}
+    <article>
+        <h2>{{ resource.verbose_name|title }}</h2>
+        <code>{{ resource.resource_name }}</code>
+        {% if resource.description %}
+            <p>{{ resource.description }}</p>
+        {% endif %}
+
+        {% include "jsrn/doc-fields.html" %}
+    </article>
+{% endfor %}
+{% endblock %}

@@ -13,8 +13,9 @@ __all__ = ('RESTRUCTURED_TEXT', 'dump', 'dumps')
 
 _TEMPLATE_ROOT = os.path.join(os.path.dirname(__file__), 'templates')
 
-# Restructured text
-RESTRUCTURED_TEXT = 'rst.txt'
+# Builtin format templates
+FORMAT_TEMPLATE_RST = 'jsrn/doc.rst'
+FORMAT_TEMPLATE_HTML = 'jsrn/doc.html'
 
 
 class ResourceDocumentation(object):
@@ -49,10 +50,8 @@ class ResourceDocumentation(object):
                 "choices": [c[0] for c in f.choices or []],
                 "has_default": f.has_default(),
                 "default": f.get_default(),
-                "required": f.required,
-                "optional": not f.required,
-                "null": f.null,
-                "blank": f.blank
+                "optional": f.null,
+                "null": f.null
             } for f in self._meta.fields), key=lambda f: f['name'])
         return self._fields
 
@@ -64,14 +63,14 @@ def _auto_escape(template_name):
     return False
 
 
-def dump(fp, fmt=RESTRUCTURED_TEXT, exclude=None, template_path=None):
+def dump(fp, fmt=FORMAT_TEMPLATE_RST, exclude=None, template_path=None):
     """
     Dump resource documentation as Restructured Text.
 
     :param fp: File pointer to write documentation to.
-    :param fmt: Documentation format, default is restructured text (can be used with Sphinx).
+    :param fmt: Format template, default is restructured text (can be used with Sphinx).
     :param exclude: List of resources to exclude from generation.
-    :param template_path: An additional template_path to customise the documentation generation.
+    :param template_path: An additional template_path for customisation of generated documentation.
 
     If an additional template path is supplied it will be made the first path in the template search paths and will
     override any built in templates.
@@ -79,13 +78,13 @@ def dump(fp, fmt=RESTRUCTURED_TEXT, exclude=None, template_path=None):
     fp.write(dumps(fmt, exclude, template_path))
 
 
-def dumps(fmt=RESTRUCTURED_TEXT, exclude=None, template_path=None):
+def dumps(fmt=FORMAT_TEMPLATE_RST, exclude=None, template_path=None):
     """
     Dump resource documentation to a string.
 
-    :param fmt: Documentation format, default is restructured text (can be used with Sphinx).
+    :param fmt: Format template, default is restructured text (can be used with Sphinx).
     :param exclude: List of resources to exclude from generation.
-    :param template_path: An additional template_path to customise the documentation generation.
+    :param template_path: An additional template_path for customisation of generated documentation.
     :returns: string representation of documentation.
 
     If an additional template path is supplied it will be made the first path in the template search paths and will

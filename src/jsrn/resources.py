@@ -3,24 +3,26 @@ import copy
 import six
 from jsrn import exceptions, registration
 from jsrn.exceptions import ValidationError
+from jsrn.fields import NOT_PROVIDED
 
 
 RESOURCE_TYPE_FIELD = '$'
-DEFAULT_NAMES = ('verbose_name', 'verbose_name_plural', 'abstract', 'name_space', 'name',)
+META_OPTION_NAMES = ('name', 'name_space', 'verbose_name', 'verbose_name_plural', 'abstract', 'doc_group', )
 
 
 class ResourceOptions(object):
     def __init__(self, meta):
         self.meta = meta
+        self.parents = []
         self.fields = []
         self.virtual_fields = []
+
         self.name = None
         self.name_space = None
-        self.abstract = False
-        self.serialized_name = ''
         self.verbose_name = None
         self.verbose_name_plural = None
-        self.parents = []
+        self.abstract = False
+        self.doc_group = None
 
     def contribute_to_class(self, cls, name):
         cls._meta = self
@@ -31,7 +33,7 @@ class ResourceOptions(object):
             for name in self.meta.__dict__:
                 if name.startswith('_'):
                     del meta_attrs[name]
-            for attr_name in DEFAULT_NAMES:
+            for attr_name in META_OPTION_NAMES:
                 if attr_name in meta_attrs:
                     setattr(self, attr_name, meta_attrs.pop(attr_name))
                 elif hasattr(self.meta, attr_name):
@@ -88,7 +90,13 @@ class ResourceBase(type):
     def __new__(cls, name, bases, attrs):
         super_new = super(ResourceBase, cls).__new__
 
-        parents = [b for b in bases if isinstance(b, ResourceBase)]
+        # attrs will never be empty for classes declared in the standard way
+        # (ie. with the `class` keyword). This is quite robust.
+        if name == 'NewBase' and attrs == {}:
+            return super_new(cls, name, bases, attrs)
+
+        parents = [b for b in bases if isinstance(b, ResourceBase) and not (b.__name__ == 'NewBase'
+                                                                            and b.__mro__ == (b, object))]
         if not parents:
             # If this isn't a subclass of Resource, don't do anything special.
             return super_new(cls, name, bases, attrs)
@@ -179,6 +187,14 @@ class Resource(six.with_metaclass(ResourceBase)):
     def __str__(self):
         return '%s resource' % self.__class__.__name__
 
+    def extra_attrs(self, attrs):
+        """
+        Called during deserialisation of data if there are any extra fields defined in the document.
+
+        This allows the resource to decide how to handle these fields. By default they are ignored.
+        """
+        pass
+
     def clean(self):
         """
         Chance to do more in depth validation.
@@ -247,8 +263,9 @@ def create_resource_from_dict(obj, resource_name=None):
     errors = {}
     attrs = {}
     for f in resource_type._meta.fields:
+        value = obj.pop(f.name, NOT_PROVIDED)
         try:
-            attrs[f.attname] = f.clean(obj.get(f.name))
+            attrs[f.attname] = f.clean(value)
         except exceptions.ValidationError as ve:
             errors[f.name] = ve.error_messages
 
@@ -256,5 +273,7 @@ def create_resource_from_dict(obj, resource_name=None):
         raise exceptions.ValidationError(errors)
 
     new_resource = resource_type(**attrs)
+    if obj:
+        new_resource.extra_attrs(obj)
     new_resource.full_clean()
     return new_resource

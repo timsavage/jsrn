@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import copy
+import datetime
 import six
-from jsrn import exceptions
+from jsrn import exceptions, datetimeutil
 from jsrn.validators import EMPTY_VALUES, MaxLengthValidator, MinValueValidator, MaxValueValidator
 
 __all__ = ('BooleanField', 'StringField', 'IntegerField', 'FloatField', 'ObjectField', 'ArrayField')
@@ -20,10 +21,11 @@ class Field(object):
         'invalid_choice': 'Value %r is not a valid choice.',
         'null': 'This field cannot be null.',
         'blank': 'This field cannot be blank.',
+        'required': 'This field is required.',
     }
 
-    def __init__(self, verbose_name=None, verbose_name_plural=None, name=None, required=True,
-                 blank=False, null=False, default=NOT_PROVIDED, choices=None, help_text='', validators=[],
+    def __init__(self, verbose_name=None, verbose_name_plural=None, name=None, null=False, choices=None,
+                 use_default_if_not_provided=False, default=NOT_PROVIDED, help_text='', validators=[],
                  error_messages=None):
         """
         Initialisation of a Field.
@@ -31,11 +33,10 @@ class Field(object):
         :param verbose_name: Display name of field.
         :param verbose_name_plural: Plural display name of field.
         :param name: Name of field in JSON form.
-        :param required: This value must be defined in a loaded file.
-        :param blank: This value can be a non empty value.
-        :param null: This value can be null.
-        :param default: Default value for this field.
+        :param null: This value can be null/None.
         :param choices: Collection of valid choices for this field.
+        :param default: Default value for this field.
+        :param use_default_if_not_provided: Use the default value if a field is not provided in a document.
         :param help_text: Help text to describe this field when generating a schema.
         :param validators: Additional validators, these should be a callable that takes a single value.
         :param error_messages: Dictionary that overrides error messages (or providers additional messages for custom
@@ -43,9 +44,8 @@ class Field(object):
         """
         self.verbose_name, self.verbose_name_plural = verbose_name, verbose_name_plural
         self.name = name
-        self.required = required
-        self.blank, self.null = blank, null
-        self.default, self.choices = default, choices
+        self.null, self.choices = null, choices
+        self.default, self.use_default_if_not_provided = default, use_default_if_not_provided
         self.help_text = help_text
         self.validators = self.default_validators + validators
 
@@ -115,20 +115,14 @@ class Field(object):
 
     def validate(self, value):
         if self.choices and value not in EMPTY_VALUES:
-            for option_key, option_value in self.choices:
-                if value == option_key:
+            for choice in self.choices:
+                if value == choice[0]:
                     return
             msg = self.error_messages['invalid_choice'] % value
             raise exceptions.ValidationError(msg)
 
-        if value in EMPTY_VALUES and not self.required:
-            return
-
         if value is None and not self.null:
             raise exceptions.ValidationError(self.error_messages['null'])
-
-        if not self.blank and value in EMPTY_VALUES:
-            raise exceptions.ValidationError(self.error_messages['blank'])
 
     def clean(self, value):
         """
@@ -136,6 +130,8 @@ class Field(object):
         from to_python and validate are propagated. The correct value is
         returned if no error is raised.
         """
+        if value is NOT_PROVIDED:
+            value = self.get_default() if self.use_default_if_not_provided else None
         value = self.to_python(value)
         self.validate(value)
         self.run_validators(value)
@@ -241,6 +237,47 @@ class IntegerField(ScalarField):
         except (TypeError, ValueError):
             msg = self.error_messages['invalid'] % value
             raise exceptions.ValidationError(msg)
+
+
+class DateTimeField(Field):
+    """
+    Field that handles date values encoded as a string.
+
+    The format of the string is that defined by ECMA international standard ECMA-262 section 15.9.1.15. Note that the
+    standard encodes all dates as UTC.
+
+    Use the ``assume_local`` flag to customise how naive (datetime values with no timezone) are handled and also how
+    dates are decoded. If ``assume_local`` is True (the default) naive dates are
+
+    For naive Python date times they are assumed to represent the current system timezone. Unless ``use_local`` is False
+    dates is
+    specified on the field.
+    """
+    default_error_messages = {
+        'invalid': "Not a valid date string.",
+    }
+
+    def __init__(self, assume_local=True, *arg, **kwargs):
+        super(DateTimeField, self).__init__(*arg, **kwargs)
+        self.assume_local = assume_local
+
+    def to_python(self, value):
+        if value is None:
+            return value
+        if isinstance(value, datetime.datetime):
+            return value
+        try:
+            return datetimeutil.parse_ecma_date_string(value, self.assume_local)
+        except ValueError:
+            pass
+        msg = self.error_messages['invalid']
+        raise exceptions.ValidationError(msg)
+
+    def to_json(self, value):
+        if value is None:
+            return None
+        if isinstance(value, datetime.datetime):
+            datetimeutil.to_ecma_date_string(value, self.assume_local)
 
 
 class ObjectField(Field):

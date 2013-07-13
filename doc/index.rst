@@ -5,7 +5,17 @@
 JSRN (JavaScript Resource Notation) documentation
 #################################################
 
-Contents:
+
+Quick links
+***********
+
+* `Documentation <https://jsrn.readthedocs.org/en/latest/>`_
+* `Project home <https://github.com/timsavage/jsrn>`_
+* `Issue tracker <https://github.com/timsavage/jsrn/issues>`_
+
+
+Contents
+********
 
 .. toctree::
    :maxdepth: 2
@@ -17,9 +27,8 @@ Contents:
 
 
 Indices and tables
-==================
+******************
 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
