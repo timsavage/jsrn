@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import copy
+import datetime
 import six
-from jsrn import exceptions
+from jsrn import exceptions, datetimeutil
 from jsrn.validators import EMPTY_VALUES, MaxLengthValidator, MinValueValidator, MaxValueValidator
 
 __all__ = ('BooleanField', 'StringField', 'IntegerField', 'FloatField', 'ObjectField', 'ArrayField')
@@ -236,6 +237,47 @@ class IntegerField(ScalarField):
         except (TypeError, ValueError):
             msg = self.error_messages['invalid'] % value
             raise exceptions.ValidationError(msg)
+
+
+class DateTimeField(Field):
+    """
+    Field that handles date values encoded as a string.
+
+    The format of the string is that defined by ECMA international standard ECMA-262 section 15.9.1.15. Note that the
+    standard encodes all dates as UTC.
+
+    Use the ``assume_local`` flag to customise how naive (datetime values with no timezone) are handled and also how
+    dates are decoded. If ``assume_local`` is True (the default) naive dates are
+
+    For naive Python date times they are assumed to represent the current system timezone. Unless ``use_local`` is False
+    dates is
+    specified on the field.
+    """
+    default_error_messages = {
+        'invalid': "Not a valid date string.",
+    }
+
+    def __init__(self, assume_local=True, *arg, **kwargs):
+        super(DateTimeField, self).__init__(*arg, **kwargs)
+        self.assume_local = assume_local
+
+    def to_python(self, value):
+        if value is None:
+            return value
+        if isinstance(value, datetime.datetime):
+            return value
+        try:
+            return datetimeutil.parse_ecma_date_string(value, self.assume_local)
+        except ValueError:
+            pass
+        msg = self.error_messages['invalid']
+        raise exceptions.ValidationError(msg)
+
+    def to_json(self, value):
+        if value is None:
+            return None
+        if isinstance(value, datetime.datetime):
+            datetimeutil.to_ecma_date_string(value, self.assume_local)
 
 
 class ObjectField(Field):
