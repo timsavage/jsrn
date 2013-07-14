@@ -3,7 +3,7 @@ import unittest
 import datetime
 from jsrn import fields, datetimeutil
 from jsrn.exceptions import ValidationError
-from _fields_basic_helpers import create_simple_test_method
+from _fields_basic_helpers import create_simple_method
 
 
 class ObjectValue(object):
@@ -133,5 +133,5 @@ class FieldToPythonTestCase(unittest.TestCase):
     pass
 
 for idx, (field, value, expected) in enumerate(TO_PYTHON_TESTS):
-    name, method = create_simple_test_method(field, "to_python", value, expected, idx)
+    name, method = create_simple_method(field, "to_python", value, expected, idx)
     setattr(FieldToPythonTestCase, name, method)
