@@ -2,9 +2,8 @@
 from jsrn.exceptions import ValidationError
 
 
-def create_simple_method(field, method_name, value, expected, num):
-    assert hasattr(field, method_name)
-    method = getattr(field, method_name)
+def create_simple_method(obj, method_name, value, expected, num):
+    method = obj if method_name is None else getattr(obj, method_name)
 
     if expected is None:
         name_mask = "test_%s_%s_returns_none_%d"
@@ -36,5 +35,5 @@ def create_simple_method(field, method_name, value, expected, num):
                 self.fail("Validation of '%s' failed. Error message was: %s" % (
                     value, str(e)))
 
-    test_name = name_mask % (field.__class__.__name__, method_name, num)
+    test_name = name_mask % (obj.__class__.__name__, method_name, num)
     return test_name, tst_func
