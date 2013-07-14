@@ -98,7 +98,6 @@ class FieldTestCase(unittest.TestCase):
         self.assertEqual("test_value", actual)
 
 
-
 DATE_TIME_AWARE = datetime.datetime(2013, 7, 13, 16, 54, 46, 123000, datetimeutil.utc)
 DATE_TIME_NAIVE = datetime.datetime(2013, 7, 13, 16, 54, 46, 123000)
 DATE_TIME_STRING = "2013-07-13T16:54:46.123Z"
@@ -121,11 +120,47 @@ TO_PYTHON_TESTS = [
     (fields.BooleanField(), 23424, ValidationError),
     (fields.BooleanField(), "Value", ValidationError),
 
+    (fields.StringField(), None, None),
+    (fields.StringField(), "123", "123"),
+    (fields.StringField(), 123, "123"),
+
+    (fields.FloatField(), None, None),
+    (fields.FloatField(), 123, 123.0),
+    (fields.FloatField(), 123.456, 123.456),
+    (fields.FloatField(), "123.456", 123.456),
+    (fields.FloatField(), True, 1.0),
+    (fields.FloatField(), "fudge", ValidationError),
+
+    (fields.IntegerField(), None, None),
+    (fields.IntegerField(), 123, 123),
+    (fields.IntegerField(), 123.456, 123),
+    (fields.IntegerField(), "123", 123),
+    (fields.IntegerField(), True, 1),
+    (fields.IntegerField(), "fudge", ValidationError),
+
     (fields.DateTimeField(assume_local=False), None, None),
     (fields.DateTimeField(assume_local=False), DATE_TIME_STRING, DATE_TIME_AWARE),
     (fields.DateTimeField(assume_local=False), DATE_TIME_AWARE, DATE_TIME_AWARE),
     (fields.DateTimeField(assume_local=False), DATE_TIME_STRING_INVALID, ValidationError),
     (fields.DateTimeField(assume_local=False), 2345, ValidationError),
+
+    (fields.ObjectField(), None, None),
+    (fields.ObjectField(), {}, {}),
+    (fields.ObjectField(), {'a': 'A', 'b': 'B'}, {'a': 'A', 'b': 'B'}),
+    (fields.ObjectField(), {'$': 'clean_this_up', 'a': 'A', 'b': 'B'}, {'a': 'A', 'b': 'B'}),
+    (fields.ObjectField(), "fudge", ValidationError),
+
+    (fields.ArrayField(), None, None),
+    (fields.ArrayField(), [], []),
+    (fields.ArrayField(), [1, 2, 3], [1, 2, 3]),
+    (fields.ArrayField(), {1, 2, 3}, [1, 2, 3]),
+    (fields.ArrayField(), (1, 2, 3), [1, 2, 3]),
+    (fields.ArrayField(), "fudge", ['f', 'u', 'd', 'g', 'e']),
+    (fields.ArrayField(), {'a': 'A', 'b': 'B'}, ['a', 'b']),
+    (fields.ArrayField(), 1, ValidationError),
+
+    (fields.ArrayField(fields.IntegerField()), [1, 2, 3], [1, 2, 3]),
+    (fields.ArrayField(fields.IntegerField()), [1, "fudge", 3], ValidationError),
 ]
 
 
@@ -135,3 +170,5 @@ class FieldToPythonTestCase(unittest.TestCase):
 for idx, (field, value, expected) in enumerate(TO_PYTHON_TESTS):
     name, method = create_simple_method(field, "to_python", value, expected, idx)
     setattr(FieldToPythonTestCase, name, method)
+
+
