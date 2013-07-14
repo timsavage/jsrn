@@ -16,7 +16,7 @@ Highlights
 **********
 
 * Class based declarative style
-* Support for all JSON primitive types
+* Support for all JSON primitive types (including JavaScript Date)
 * Fields for building composite resources
 * Field and Resource level validation
 * Easy extension to support custom fields
@@ -38,8 +38,6 @@ Upcoming features
 
 * Customisable generation of documentation of resources (for integration into `Sphinx <http://sphinx-doc.org/>`_)
 * Complete documentation (around 70-80% complete for current features)
-* Fields for non primitive types (ie Date, DateTime)
-
 
 **Planning**
 
