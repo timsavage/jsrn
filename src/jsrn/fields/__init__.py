@@ -282,7 +282,7 @@ class DateTimeField(Field):
 
 class ObjectField(Field):
     default_error_messages = {
-        'invalid': "Must be a dict.",
+        'invalid': "Must be an object.",
     }
 
     def __init__(self, **kwargs):
@@ -303,18 +303,38 @@ class ObjectField(Field):
 
 class ArrayField(Field):
     default_error_messages = {
-        'invalid': "Must be a list.",
+        'invalid': "Must be an array.",
     }
 
-    def __init__(self, **kwargs):
+    def __init__(self, field=None, **kwargs):
         kwargs.setdefault("default", list)
+        self.field = field
         super(ArrayField, self).__init__(**kwargs)
 
     def to_python(self, value):
         if value is None:
             return value
+
+        # Initial transformation to a list.
         try:
-            return list(value)
+            raw_list = list(value)
         except (TypeError, ValueError):
             msg = self.error_messages['invalid']
             raise exceptions.ValidationError(msg)
+
+        # If a field has been provided validate each list item to ensure it is the correct type.
+        if self.field is None:
+            return raw_list
+
+        value_list = []
+        errors = {}
+        for idx, item in enumerate(raw_list):
+            try:
+                value_list.append(self.field.to_python(item))
+            except exceptions.ValidationError as ve:
+                errors[idx] = ve.error_messages
+
+        if errors:
+            raise exceptions.ValidationError(errors)
+
+        return value_list
