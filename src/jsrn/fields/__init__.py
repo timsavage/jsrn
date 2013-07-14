@@ -306,29 +306,34 @@ class ArrayField(Field):
         'invalid': "Must be an array.",
     }
 
-    def __init__(self, field=None, **kwargs):
+    def __init__(self, **kwargs):
         kwargs.setdefault("default", list)
-        self.field = field
         super(ArrayField, self).__init__(**kwargs)
 
     def to_python(self, value):
         if value is None:
             return value
 
-        # Initial transformation to a list.
         try:
-            raw_list = list(value)
+            return list(value)
         except (TypeError, ValueError):
             msg = self.error_messages['invalid']
             raise exceptions.ValidationError(msg)
 
-        # If a field has been provided validate each list item to ensure it is the correct type.
-        if self.field is None:
-            return raw_list
+
+class TypedArrayField(ArrayField):
+    def __init__(self, field=None, **kwargs):
+        self.field = field
+        super(TypedArrayField, self).__init__(**kwargs)
+
+    def to_python(self, value):
+        value = super(TypedArrayField, self).to_python(value)
+        if not value:
+            return value
 
         value_list = []
         errors = {}
-        for idx, item in enumerate(raw_list):
+        for idx, item in enumerate(value):
             try:
                 value_list.append(self.field.to_python(item))
             except exceptions.ValidationError as ve:

@@ -159,8 +159,8 @@ TO_PYTHON_TESTS = [
     (fields.ArrayField(), {'a': 'A', 'b': 'B'}, ['a', 'b']),
     (fields.ArrayField(), 1, ValidationError),
 
-    (fields.ArrayField(fields.IntegerField()), [1, 2, 3], [1, 2, 3]),
-    (fields.ArrayField(fields.IntegerField()), [1, "fudge", 3], ValidationError),
+    (fields.TypedArrayField(fields.IntegerField()), [1, 2, 3], [1, 2, 3]),
+    (fields.TypedArrayField(fields.IntegerField()), [1, "fudge", 3], ValidationError),
 ]
 
 
