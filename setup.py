@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='jsrn',
-    version="0.2.0",
+    version="0.3",
     url='https://github.com/timsavage/jsrn',
     license='LICENSE',
     author='Tim Savage',
@@ -20,9 +20,7 @@ setup(
     },
 
     classifiers=[
-        'Development Status :: 2 - Beta',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD',
         'Natural Language :: English',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
