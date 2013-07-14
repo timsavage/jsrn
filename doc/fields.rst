@@ -223,7 +223,7 @@ An array structure represented in Python by a *list* instance.
 
 TypedArrayField
 ===============
-``class TypedArrayField([**options])``
+``class TypedArrayField(field, [**options])``
 
 An array structure represented in Python by a *list* instance accepts an additional parameter of another field type that
 each entry in the array is validated against.
@@ -240,7 +240,6 @@ ObjectField
 An object structure represented in Python by a *dict* instance.
 
 .. note: The object values in the object are not defined.
-
 
 .. _field-composite_fields:
 
