@@ -10,12 +10,7 @@ DST_OFFSET = datetime.timedelta(seconds=-time.altzone) if time.daylight else STD
 DST_DIFF = DST_OFFSET - STD_OFFSET
 
 
-class SimpleTimeZone(datetime.tzinfo):
-    def __repr__(self):
-        return "<timezone: %s>" % self
-
-
-class UTC(SimpleTimeZone):
+class UTC(datetime.tzinfo):
     """
     UTC timezone.
     """
@@ -31,8 +26,11 @@ class UTC(SimpleTimeZone):
     def __str__(self):
         return "UTC"
 
+    def __repr__(self):
+        return "<timezone: %s>" % self
 
-class LocalTimezone(SimpleTimeZone):
+
+class LocalTimezone(datetime.tzinfo):
     """
     The current local timezone (according to the platform)
     """
@@ -59,6 +57,8 @@ class LocalTimezone(SimpleTimeZone):
     def __str__(self):
         return time.tzname[0]
 
+    def __repr__(self):
+        return "<timezone: %s>" % self
 
 utc = UTC()
 local = LocalTimezone()
