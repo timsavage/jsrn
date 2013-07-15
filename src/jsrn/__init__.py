@@ -1,3 +1,8 @@
+__author__ = "Tim Savage"
+__author_email__ = "tim.savage@poweredbypenguins.org"
+__copyright__ = "Copyright (C) 2013 Tim Savage"
+__version__ = "0.3.1"
+
 try:
     import simplejson as json
 except ImportError:
@@ -5,8 +10,6 @@ except ImportError:
 from jsrn.resources import Resource
 from jsrn.fields import *
 from jsrn.fields.composite import *
-
-__version__ = "0.3"
 
 
 def load(fp, *args, **kwargs):

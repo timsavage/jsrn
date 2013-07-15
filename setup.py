@@ -1,14 +1,20 @@
 from setuptools import setup
 
+# Work around between pypi packages and Github needing a .rst
+try:
+    long_description = open("README.rst").read()
+except IOError:
+    long_description = ""
+
 setup(
     name='jsrn',
-    version="0.3",
+    version="0.3.1",
     url='https://github.com/timsavage/jsrn',
     license='LICENSE',
     author='Tim Savage',
     author_email='tim.savage@poweredbypenguins.org',
     description='JavaScript Resource Notation for Python',
-    long_description=open("README.rst").read(),
+    long_description=long_description,
     package_dir={'': 'src'},
     packages=['jsrn', 'jsrn.fields'],
     install_requires=['six'],
