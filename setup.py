@@ -8,7 +8,7 @@ except IOError:
 
 setup(
     name='jsrn',
-    version="0.3.1",
+    version="0.3.2",
     url='https://github.com/timsavage/jsrn',
     license='LICENSE',
     author='Tim Savage',
