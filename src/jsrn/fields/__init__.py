@@ -322,7 +322,7 @@ class ArrayField(Field):
 
 
 class TypedArrayField(ArrayField):
-    def __init__(self, field=None, **kwargs):
+    def __init__(self, field, **kwargs):
         self.field = field
         super(TypedArrayField, self).__init__(**kwargs)
 
