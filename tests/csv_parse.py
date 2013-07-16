@@ -21,9 +21,15 @@ class Book(jsrn.Resource):
 
 
 class CsvResourceReaderTestCase(unittest.TestCase):
-    def test_items(self):
+    def test_valid(self):
         with open(os.path.join(FIXTURE_PATH_ROOT, "libary-valid.csv")) as f:
             books = [book for book in ResourceReader(f, Book)]
 
         self.assertEqual(6, len(books))
         self.assertEqual("Consider Phlebas", books[0].title)
+
+    def test_invalid(self):
+        with open(os.path.join(FIXTURE_PATH_ROOT, "libary-invalid.csv")) as f:
+
+            with self.assertRaises(jsrn.exceptions.ValidationError):
+                books = [book for book in ResourceReader(f, Book)]
