@@ -215,7 +215,7 @@ class FloatField(ScalarField):
     }
 
     def to_python(self, value):
-        if value is None:
+        if value in EMPTY_VALUES:
             return None
         try:
             return float(value)
@@ -230,7 +230,7 @@ class IntegerField(ScalarField):
     }
 
     def to_python(self, value):
-        if value is None:
+        if value in EMPTY_VALUES:
             return value
         try:
             return int(value)
@@ -262,7 +262,7 @@ class DateTimeField(Field):
         self.assume_local = assume_local
 
     def to_python(self, value):
-        if value is None:
+        if value in EMPTY_VALUES:
             return value
         if isinstance(value, datetime.datetime):
             return value
