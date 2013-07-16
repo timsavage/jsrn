@@ -25,4 +25,5 @@ class CsvResourceReaderTestCase(unittest.TestCase):
         with open(os.path.join(FIXTURE_PATH_ROOT, "libary-valid.csv")) as f:
             books = [book for book in ResourceReader(f, Book)]
 
-        print books
+        self.assertEqual(6, len(books))
+        self.assertEqual("Consider Phlebas", books[0].title)
