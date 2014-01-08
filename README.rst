@@ -1,3 +1,6 @@
+This project is now deprecated and has been replaced by `Odin <https://github.com/timsavage/odin>`_.
+
+
 ##############################################
 JSRN - JavaScript Resource Notation for Python
 ##############################################
